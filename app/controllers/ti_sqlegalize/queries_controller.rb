@@ -1,7 +1,7 @@
 require 'sqliterate'
 
 module TiSqlegalize
-  class QueriesController < ApplicationController
+  class QueriesController < TiSqlegalize::ApplicationController
     def create
       query = params['queries']
       return invalid_params unless query && query.is_a?(Hash)
