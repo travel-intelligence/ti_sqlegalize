@@ -1,9 +1,11 @@
 require 'rails-api/action_controller/api'
+require 'ti_devise_auth/controller'
 
 module TiSqlegalize
   class ApplicationController < ActionController::API
 
     include ActionController::MimeResponds
+    include TiDeviseAuth::Controller
 
     rescue_from Exception, with: :exception_handler
 

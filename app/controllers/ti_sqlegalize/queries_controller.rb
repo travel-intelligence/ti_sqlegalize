@@ -2,6 +2,8 @@ require 'sqliterate'
 
 module TiSqlegalize
   class QueriesController < TiSqlegalize::ApplicationController
+    ensure_signed_in
+
     def create
       query = params['queries']
       return invalid_params unless query && query.is_a?(Hash)
