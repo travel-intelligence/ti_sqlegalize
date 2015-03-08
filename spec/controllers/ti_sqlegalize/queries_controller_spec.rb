@@ -5,7 +5,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
   let!(:user) { Fabricate(:user) }
 
-  context "authenticated user" do
+  context "with an authenticated user" do
 
     before(:each) { sign_in user }
 
@@ -47,7 +47,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
     end
   end
 
-  context "not authenticated user" do
+  context "without an authenticated user" do
     it 'returns an error without authentication' do
       rep = { queries: { sql: "select a from t1, (select b,c from d.t) t2" } }
       post_api :create, rep
