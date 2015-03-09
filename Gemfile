@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
-# !!! REMOVE BEFORE MERGE !!!
-gem 'ti_devise_auth', :path => '../ti_devise_auth'
+gem 'ti_rails_auth', :github => 'ebastien/ti_rails_auth'
 
 # Declare your gem's dependencies in ti_sqlegalize.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
