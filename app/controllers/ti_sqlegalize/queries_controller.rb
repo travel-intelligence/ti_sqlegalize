@@ -1,4 +1,5 @@
 require 'sqliterate'
+require 'resque'
 
 module TiSqlegalize
   class QueriesController < TiSqlegalize::ApplicationController
@@ -12,11 +13,14 @@ module TiSqlegalize
       ast = SQLiterate::QueryParser.new.parse sql
       return invalid_params unless ast
 
-      id = SecureRandom.hex(16)
-      href = query_url(id)
+      query = Query.new sql
+      query.create!
+      query.enqueue!
+
+      href = query_url(query.id)
       rep = {
         queries: {
-          id: id,
+          id: query.id,
           href: href,
           sql: sql,
           tables: ast.tables
@@ -27,7 +31,26 @@ module TiSqlegalize
     end
 
     def show
-      render_api json: {}, status: 204
+      id = params[:id]
+      offset = [params[:offset].to_i, 0].max
+      limit = [[params[:limit].to_i, 1].max, 10000].min
+
+      query = Query.find(id)
+      if query
+        rep = {
+          queries: {
+            id: id,
+            href: query_url(id),
+            status: query.status,
+            offset: offset,
+            limit: limit,
+            rows: query[offset, limit]
+          }
+        }
+        render_api json: rep, status: 200
+      else
+        render_api json: {}, status: 404
+      end
     end
   end
 end

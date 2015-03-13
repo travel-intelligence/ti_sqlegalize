@@ -19,8 +19,10 @@ Gem::Specification.new do |s|
   s.add_dependency "rails-api", "~> 0.3.1"
   s.add_dependency "sqliterate"
   s.add_dependency "ti_rails_auth"
+  s.add_dependency "resque"
 
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "jsonpath"
   s.add_development_dependency "fabrication"
+  s.add_development_dependency "mock_redis"
 end
