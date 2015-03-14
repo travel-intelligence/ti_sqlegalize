@@ -73,6 +73,8 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
         expect(response.status).to eq(200)
         expect(first_json_at '$.queries.status').to eq('finished')
         expect(first_json_at '$.queries.rows').to eq(@results)
+        expect(first_json_at '$.queries.quota').to eq(100_000)
+        expect(first_json_at '$.queries.count').to eq(@results.length)
       end
     end
   end

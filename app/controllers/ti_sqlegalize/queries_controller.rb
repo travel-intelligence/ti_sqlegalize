@@ -44,6 +44,8 @@ module TiSqlegalize
             status: query.status,
             offset: offset,
             limit: limit,
+            quota: query.quota,
+            count: query.count,
             rows: query[offset, limit]
           }
         }

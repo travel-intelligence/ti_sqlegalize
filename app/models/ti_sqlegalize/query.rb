@@ -2,7 +2,11 @@ module TiSqlegalize
   class Query
     @queue = :query
 
-    attr_accessor :id, :statement, :status
+    DEFAULT_QUOTA = 100_000
+
+    CURSOR_BATCH = 1024
+
+    attr_accessor :id, :statement, :status, :quota, :count
 
     def create!
       unless id
@@ -20,7 +24,12 @@ module TiSqlegalize
     end
 
     def meta
-      { status: status, statement: statement }
+      {
+        status: status,
+        statement: statement,
+        count: count,
+        quota: quota
+      }
     end
 
     def [](offset, limit)
@@ -34,15 +43,35 @@ module TiSqlegalize
 
     def <<(rows)
       k = self.class.main_key id
-      Resque.redis.rpush(k, rows) if k
+      if k
+        self.count = Resque.redis.rpush(k, rows)
+      end
     end
 
-    def initialize(statement)
+    def initialize(statement, quota = DEFAULT_QUOTA)
       @statement = statement.to_s
+      @quota = quota.to_i
+      @count = 0
     end
 
     def enqueue!
       Resque.enqueue(self.class, id) if id
+    end
+
+    def run
+      cursor = self.class.execute statement
+      cursor.each_slice(CURSOR_BATCH) do |chunk|
+        rows = if count + chunk.length <= quota
+                 chunk
+               else
+                 chunk.take(quota - count)
+               end
+        self << rows
+        break if count >= quota
+      end
+      cursor.close if cursor.respond_to? :close
+      self.status = :finished
+      save!
     end
 
     def self.find(id)
@@ -50,9 +79,10 @@ module TiSqlegalize
       m = Resque.redis.get(k) if k
       if m
         meta = MultiJson.load m
-        query = new(meta['statement'])
+        query = new(meta['statement'], meta['quota'])
         query.id = id
         query.status = meta['status'].to_sym
+        query.count = meta['count']
         query
       end
     end
@@ -69,12 +99,7 @@ module TiSqlegalize
       query = find id
       if query
         Rails.logger.info "Job #{id}: #{query.statement}"
-        cursor = execute(query.statement)
-        cursor.each_slice(1000) do |rows|
-          query << rows
-        end
-        query.status = :finished
-        query.save!
+        query.run
       end
     end
 

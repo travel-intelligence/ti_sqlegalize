@@ -41,10 +41,12 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
     expect(q[0, 10]).to eq(rows)
   end
 
-  it 'perform statement' do
+  it 'performs statement' do
     query.create!
 
     rows = ['a','b','c']
+    rows.define_singleton_method(:close) {}
+    expect(rows).to receive(:close)
     expect(TiSqlegalize::Query).to \
       receive(:execute).with(query.statement).and_return(rows)
 
@@ -52,5 +54,26 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
 
     q = TiSqlegalize::Query.find(query.id)
     expect(q[0, 10]).to eq(rows)
+  end
+
+  context 'with quota' do
+
+    let!(:quota) { 5 }
+    let!(:query) { TiSqlegalize::Query.new('select 1', quota) }
+
+    it 'enforces quota' do
+      query.create!
+
+      rows = ['a','b','c','d','e','f','g']
+      expect(TiSqlegalize::Query).to \
+        receive(:execute).with(query.statement).and_return(rows)
+
+      query.run
+
+      q = TiSqlegalize::Query.find(query.id)
+      expect(q[0, 10]).to eq(rows.take quota)
+      expect(q.count).to eq(quota)
+      expect(q.quota).to eq(quota)
+    end
   end
 end
