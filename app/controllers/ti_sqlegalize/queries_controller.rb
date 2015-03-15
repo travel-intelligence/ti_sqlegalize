@@ -46,6 +46,7 @@ module TiSqlegalize
             limit: limit,
             quota: query.quota,
             count: query.count,
+            schema: query.schema,
             rows: query[offset, limit]
           }
         }

@@ -47,8 +47,12 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
     context "with a query engine" do
 
       before(:each) do
-        @results = ['a','b','c']
-        allow(TiSqlegalize::Query).to receive(:execute).and_return(@results)
+        @cursor = [['a','b','c']]
+        @cursor.define_singleton_method(:close) {}
+        @cursor.define_singleton_method(:schema) { ['x','y','z'] }
+        @database = double()
+        allow(@database).to receive(:execute).and_return(@cursor)
+        allow(TiSqlegalize).to receive(:database).and_return(-> { @database })
       end
 
       it "enqueue queries for processing" do
@@ -72,9 +76,10 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
         get_api :show, id: query_id, offset: 0, limit: 100
         expect(response.status).to eq(200)
         expect(first_json_at '$.queries.status').to eq('finished')
-        expect(first_json_at '$.queries.rows').to eq(@results)
+        expect(first_json_at '$.queries.rows').to eq([['a','b','c']])
         expect(first_json_at '$.queries.quota').to eq(100_000)
-        expect(first_json_at '$.queries.count').to eq(@results.length)
+        expect(first_json_at '$.queries.count').to eq(@cursor.length)
+        expect(first_json_at '$.queries.schema').to eq(['x','y','z'])
       end
     end
   end

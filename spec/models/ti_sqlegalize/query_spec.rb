@@ -6,8 +6,25 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
   before(:each) { Resque.redis = MockRedis.new }
 
   let!(:queue) { Resque.queue_from_class(TiSqlegalize::Query) }
+
   let!(:ttl) { 3600 }
+
   let!(:query) { TiSqlegalize::Query.new('select 1', quota: 100, ttl: ttl) }
+
+  let!(:schema) { ['x','y','z'] }
+
+  let!(:row) { ['a','b','c'] }
+
+  let!(:rows) { [row] }
+
+  let!(:cursor) do
+    c = rows.dup
+    c.define_singleton_method(:close) {}
+    # Ruby VM crash when referring to schema in singleton method definition
+    s = schema
+    c.define_singleton_method(:schema) { s }
+    c
+  end
 
   it 'creates new queries' do
     query.create!
@@ -34,7 +51,6 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
 
   it 'appends rows' do
     query.create!
-    rows = ['a','b','c']
     query << rows
 
     q = TiSqlegalize::Query.find(query.id)
@@ -44,29 +60,26 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
   it 'performs statement' do
     query.create!
 
-    rows = ['a','b','c']
-    rows.define_singleton_method(:close) {}
-    expect(rows).to receive(:close)
-    expect(TiSqlegalize::Query).to \
-      receive(:execute).with(query.statement).and_return(rows)
+    expect(cursor).to receive(:close)
+    expect(query).to receive(:execute).with(query.statement).and_return(cursor)
+    expect(TiSqlegalize::Query).to receive(:find).with(query.id).and_return(query)
 
     TiSqlegalize::Query.perform(query.id)
 
-    q = TiSqlegalize::Query.find(query.id)
-    expect(q[0, 10]).to eq(rows)
+    expect(query[0, 10]).to eq([row])
+    expect(query.schema).to eq(schema)
   end
 
   context 'with quota' do
 
     let!(:quota) { 5 }
     let!(:query) { TiSqlegalize::Query.new('select 1', quota: quota) }
+    let!(:rows) { [row] * 7 }
 
     it 'enforces quota' do
       query.create!
 
-      rows = ['a','b','c','d','e','f','g']
-      expect(TiSqlegalize::Query).to \
-        receive(:execute).with(query.statement).and_return(rows)
+      expect(query).to receive(:execute).with(query.statement).and_return(cursor)
 
       query.run
 
@@ -80,9 +93,7 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
   it 'expires queries' do
     query.create!
 
-    rows = ['a','b','c','d','e','f','g']
-    expect(TiSqlegalize::Query).to \
-      receive(:execute).with(query.statement).and_return(rows)
+    expect(query).to receive(:execute).with(query.statement).and_return(cursor)
 
     query.run
 

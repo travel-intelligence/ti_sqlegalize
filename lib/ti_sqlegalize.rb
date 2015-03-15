@@ -4,8 +4,12 @@ module TiSqlegalize
   extend self
 
   class DummyDatabase
-    def execute(statement)
-      []
+    class Cursor < Array
+      def schema; [] end
+      def close; end
+    end
+    def execute(_statement)
+      Cursor.new
     end
   end
 
@@ -15,6 +19,6 @@ module TiSqlegalize
 
   def database
     return @database if @database
-    self.database = DummyDatabase.new
+    self.database = ->() { DummyDatabase.new }
   end
 end
