@@ -6,8 +6,8 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
   before(:each) { Resque.redis = MockRedis.new }
 
   let!(:queue) { Resque.queue_from_class(TiSqlegalize::Query) }
-
-  let!(:query) { TiSqlegalize::Query.new('select 1') }
+  let!(:ttl) { 3600 }
+  let!(:query) { TiSqlegalize::Query.new('select 1', quota: 100, ttl: ttl) }
 
   it 'creates new queries' do
     query.create!
@@ -59,7 +59,7 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
   context 'with quota' do
 
     let!(:quota) { 5 }
-    let!(:query) { TiSqlegalize::Query.new('select 1', quota) }
+    let!(:query) { TiSqlegalize::Query.new('select 1', quota: quota) }
 
     it 'enforces quota' do
       query.create!
@@ -75,5 +75,23 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
       expect(q.count).to eq(quota)
       expect(q.quota).to eq(quota)
     end
+  end
+
+  it 'expires queries' do
+    query.create!
+
+    rows = ['a','b','c','d','e','f','g']
+    expect(TiSqlegalize::Query).to \
+      receive(:execute).with(query.statement).and_return(rows)
+
+    query.run
+
+    expect(query.time_left).to be_within(60).of(ttl)
+
+    query.expire_after -1
+
+    q = TiSqlegalize::Query.find(query.id)
+    expect(q.status).to eq(:finished)
+    expect(q[0, 10]).to be_empty
   end
 end

@@ -3,7 +3,7 @@ module TiSqlegalize
     @queue = :query
 
     DEFAULT_QUOTA = 100_000
-
+    DEFAULT_TTL = 3600
     CURSOR_BATCH = 1024
 
     attr_accessor :id, :statement, :status, :quota, :count
@@ -44,14 +44,28 @@ module TiSqlegalize
     def <<(rows)
       k = self.class.main_key id
       if k
-        self.count = Resque.redis.rpush(k, rows)
+        self.count, _ = Resque.redis.multi do |r|
+                          r.rpush(k, rows)
+                          r.expire(k, @ttl)
+                        end
       end
     end
 
-    def initialize(statement, quota = DEFAULT_QUOTA)
+    def time_left
+      k = self.class.main_key id
+      Resque.redis.ttl(k) if k
+    end
+
+    def expire_after(timeout)
+      k = self.class.main_key id
+      Resque.redis.expire(k, timeout) if k
+    end
+
+    def initialize(statement, quota: DEFAULT_QUOTA, ttl: DEFAULT_TTL)
       @statement = statement.to_s
       @quota = quota.to_i
       @count = 0
+      @ttl = ttl
     end
 
     def enqueue!
@@ -79,7 +93,7 @@ module TiSqlegalize
       m = Resque.redis.get(k) if k
       if m
         meta = MultiJson.load m
-        query = new(meta['statement'], meta['quota'])
+        query = new(meta['statement'], quota: meta['quota'])
         query.id = id
         query.status = meta['status'].to_sym
         query.count = meta['count']
