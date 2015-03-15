@@ -48,6 +48,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
       before(:each) do
         @cursor = [['a','b','c']]
+        @cursor.define_singleton_method(:open?) { true }
         @cursor.define_singleton_method(:close) {}
         @cursor.define_singleton_method(:schema) { ['x','y','z'] }
         @database = double()

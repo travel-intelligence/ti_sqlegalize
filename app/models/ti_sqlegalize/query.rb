@@ -100,7 +100,9 @@ module TiSqlegalize
         self << rows
         break if count >= quota
       end
-      cursor.close if cursor.respond_to?(:close)
+      if cursor.respond_to?(:close) && cursor.respond_to?(:open?)
+        cursor.close if cursor.open?
+      end
 
       self.status = :finished
       save!

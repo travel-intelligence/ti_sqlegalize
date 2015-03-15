@@ -20,6 +20,7 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
   let!(:cursor) do
     c = rows.dup
     c.define_singleton_method(:close) {}
+    c.define_singleton_method(:open?) { true }
     # Ruby VM crash when referring to schema in singleton method definition
     s = schema
     c.define_singleton_method(:schema) { s }
