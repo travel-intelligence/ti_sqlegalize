@@ -71,8 +71,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
         expect(response.status).to eq(200)
         expect(first_json_at '$.queries.status').to eq('created')
 
-        job = Resque::Job.reserve(queue)
-        job.perform
+        perform_all queue
 
         get_api :show, id: query_id, offset: 0, limit: 100
         expect(response.status).to eq(200)
@@ -81,6 +80,34 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
         expect(first_json_at '$.queries.quota').to eq(100_000)
         expect(first_json_at '$.queries.count').to eq(@cursor.length)
         expect(first_json_at '$.queries.schema').to eq(['x','y','z'])
+      end
+    end
+
+    context "with query execution errors" do
+
+      let!(:database_error) { "It's not gonna work." }
+
+      before(:each) do
+        @database = double()
+        allow(@database).to receive(:execute) { fail database_error }
+        allow(TiSqlegalize).to receive(:database).and_return(-> { @database })
+      end
+
+      it "provides feedback with error message" do
+        post_api :create, { queries: { sql: "select 1" } }
+        expect(response.status).to eq(201)
+        query_id = first_json_at '$.queries.id'
+
+        get_api :show, id: query_id
+        expect(response.status).to eq(200)
+        expect(first_json_at '$.queries.status').to eq('created')
+
+        perform_all queue
+
+        get_api :show, id: query_id
+        expect(response.status).to eq(200)
+        expect(first_json_at '$.queries.status').to eq('error')
+        expect(first_json_at '$.queries.message').to eq(database_error)
       end
     end
   end

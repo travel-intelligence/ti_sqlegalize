@@ -6,7 +6,7 @@ module TiSqlegalize
     DEFAULT_TTL = 3600
     CURSOR_BATCH = 1024
 
-    attr_accessor :id, :statement, :status, :quota, :count, :schema
+    attr_accessor :id, :statement, :status, :quota, :count, :schema, :message
 
     def initialize(statement, quota: DEFAULT_QUOTA, ttl: DEFAULT_TTL)
       @statement = statement.to_s
@@ -14,6 +14,7 @@ module TiSqlegalize
       @count = 0
       @ttl = ttl
       @schema = []
+      @message = ""
     end
 
     def create!
@@ -37,7 +38,8 @@ module TiSqlegalize
         statement: statement,
         count: count,
         quota: quota,
-        schema: schema
+        schema: schema,
+        message: message
       }
     end
 
@@ -86,11 +88,25 @@ module TiSqlegalize
     end
 
     def run
-      cursor = execute statement
-      self.status = :running
-      self.schema = cursor.schema
-      save!
+      begin
+        cursor = execute statement
+      rescue Exception => e
+        self.status = :error
+        self.message = e.message
+        save!
+      else
+        self.status = :running
+        self.schema = cursor.schema
+        save!
 
+        fetch cursor
+
+        self.status = :finished
+        save!
+      end
+    end
+
+    def fetch(cursor)
       cursor.each_slice(CURSOR_BATCH) do |chunk|
         rows = if count + chunk.length <= quota
                  chunk
@@ -103,9 +119,6 @@ module TiSqlegalize
       if cursor.respond_to?(:close) && cursor.respond_to?(:open?)
         cursor.close if cursor.open?
       end
-
-      self.status = :finished
-      save!
     end
 
     def self.find(id)
@@ -118,6 +131,7 @@ module TiSqlegalize
         query.status = meta['status'].to_sym
         query.count = meta['count']
         query.schema = meta['schema']
+        query.message = meta['message']
         query
       end
     end

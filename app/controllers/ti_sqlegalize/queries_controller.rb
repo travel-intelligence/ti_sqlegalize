@@ -42,6 +42,7 @@ module TiSqlegalize
             id: id,
             href: query_url(id),
             status: query.status,
+            message: query.message,
             offset: offset,
             limit: limit,
             quota: query.quota,

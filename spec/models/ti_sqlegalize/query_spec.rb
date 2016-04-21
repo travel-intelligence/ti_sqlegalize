@@ -106,4 +106,21 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
     expect(q.status).to eq(:finished)
     expect(q[0, 10]).to be_empty
   end
+
+  context 'with database errors' do
+
+    let!(:database_error) { "Database error" }
+
+    it 'keeps error message and status with the query' do
+      query.create!
+
+      expect(query).to receive(:execute) { fail database_error }
+
+      query.run
+
+      q = TiSqlegalize::Query.find(query.id)
+      expect(q.status).to eq(:error)
+      expect(q.message).to eq(database_error)
+    end
+  end
 end
