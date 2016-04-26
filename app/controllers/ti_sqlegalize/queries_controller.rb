@@ -8,9 +8,12 @@ module TiSqlegalize
     def create
       query = params['queries']
       return invalid_params unless query && query.is_a?(Hash)
+
       sql = query['sql']
       return invalid_params unless sql && sql.is_a?(String)
-      ast = SQLiterate::QueryParser.new.parse sql
+
+      parser = TiSqlegalize.validator.call
+      ast = parser.parse sql
       return invalid_params unless ast
 
       query = Query.new sql

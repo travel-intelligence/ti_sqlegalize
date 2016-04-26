@@ -21,4 +21,13 @@ module TiSqlegalize
     return @database if @database
     self.database = ->() { DummyDatabase.new }
   end
+
+  def validator=(v)
+    @validator = v
+  end
+
+  def validator
+    return @validator if @validator
+    self.validator = -> { SQLiterate::QueryParser.new }
+  end
 end

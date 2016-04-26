@@ -1,9 +1,17 @@
 # encoding: utf-8
 require 'rails_helper'
+require 'ti_sqlegalize/calcite_validator'
 
 RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
   before(:each) { Resque.redis = MockRedis.new }
+
+  let!(:validator) { SQLiterate::QueryParser }
+
+  before(:each) do
+    allow(TiSqlegalize).to \
+      receive(:validator).and_return(-> { validator.new })
+  end
 
   let!(:queue) { Resque.queue_from_class(TiSqlegalize::Query) }
 
@@ -117,6 +125,24 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
       rep = { queries: { sql: "select a from t1, (select b,c from d.t) t2" } }
       post_api :create, rep
       expect(response.status).to eq(401)
+    end
+  end
+
+  context "with the Calcite validator" do
+
+    let!(:validator) { TiSqlegalize::CalciteValidator }
+
+    let!(:user) { Fabricate(:user) }
+
+    before(:each) { sign_in user }
+
+    it "translates SQL" do
+      pending("Calcite validation not implemented")
+      expect(Resque.size(queue)).to eq(0)
+      rep = { queries: { sql: "select a from t1, (select b,c from d.t) t2" } }
+      post_api :create, rep
+      expect(response.status).to eq(201)
+      expect(first_json_at '$.queries.sql').to eq("TBD")
     end
   end
 end
