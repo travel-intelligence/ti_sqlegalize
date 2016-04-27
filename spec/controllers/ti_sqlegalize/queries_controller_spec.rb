@@ -1,12 +1,13 @@
 # encoding: utf-8
 require 'rails_helper'
+require 'ti_sqlegalize/sqliterate_validator'
 require 'ti_sqlegalize/calcite_validator'
 
 RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
   before(:each) { Resque.redis = MockRedis.new }
 
-  let!(:validator) { SQLiterate::QueryParser }
+  let!(:validator) { TiSqlegalize::SQLiterateValidator }
 
   before(:each) do
     allow(TiSqlegalize).to \

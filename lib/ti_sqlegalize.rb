@@ -1,17 +1,9 @@
 require "ti_sqlegalize/engine"
+require "ti_sqlegalize/dummy_database"
+require "ti_sqlegalize/sqliterate_validator"
 
 module TiSqlegalize
   extend self
-
-  class DummyDatabase
-    class Cursor < Array
-      def schema; [] end
-      def close; end
-    end
-    def execute(_statement)
-      Cursor.new
-    end
-  end
 
   def database=(e)
     @database = e
@@ -28,6 +20,6 @@ module TiSqlegalize
 
   def validator
     return @validator if @validator
-    self.validator = -> { SQLiterate::QueryParser.new }
+    self.validator = -> { SQLiterateValidator.new }
   end
 end

@@ -14,9 +14,11 @@ module TiSqlegalize
 
       parser = TiSqlegalize.validator.call
       ast = parser.parse sql
-      return invalid_params unless ast
+      return invalid_params unless ast.valid?
 
-      query = Query.new sql
+      normalized_sql = ast.sql
+
+      query = Query.new normalized_sql
       query.create!
       query.enqueue!
 
@@ -25,7 +27,7 @@ module TiSqlegalize
         queries: {
           id: query.id,
           href: href,
-          sql: sql,
+          sql: normalized_sql,
           tables: ast.tables
         }
       }
