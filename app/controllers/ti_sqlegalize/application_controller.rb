@@ -7,7 +7,7 @@ module TiSqlegalize
     include ActionController::MimeResponds
     include TiRailsAuth::Controller
 
-    rescue_from Exception, with: :exception_handler
+    rescue_from Exception, with: :exception_handler if Rails.env.production?
 
     protected
 
