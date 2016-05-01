@@ -13,10 +13,10 @@ module TiSqlegalize
       return invalid_params unless sql && sql.is_a?(String)
 
       parser = TiSqlegalize.validator.call
-      ast = parser.parse sql
-      return invalid_params unless ast.valid?
+      validation = parser.parse sql, TiSqlegalize.schemas
+      return invalid_params unless validation.valid?
 
-      normalized_sql = ast.sql
+      normalized_sql = validation.sql
 
       query = Query.new normalized_sql
       query.create!
@@ -28,7 +28,7 @@ module TiSqlegalize
           id: query.id,
           href: href,
           sql: normalized_sql,
-          tables: ast.tables
+          tables: validation.tables
         }
       }
       response.headers['Location'] = href

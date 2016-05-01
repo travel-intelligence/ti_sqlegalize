@@ -23,7 +23,7 @@ module TiSqlegalize
       @parser = SQLiterate::QueryParser.new
     end
 
-    def parse(sql)
+    def parse(sql, _schemas=nil)
       SQLiterateAst.new sql, @parser.parse(sql)
     end
   end

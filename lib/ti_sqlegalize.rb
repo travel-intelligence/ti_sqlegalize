@@ -22,4 +22,12 @@ module TiSqlegalize
     return @validator if @validator
     self.validator = -> { SQLiterateValidator.new }
   end
+
+  def schemas=(s)
+    @schemas = s
+  end
+
+  def schemas
+    @schemas || []
+  end
 end

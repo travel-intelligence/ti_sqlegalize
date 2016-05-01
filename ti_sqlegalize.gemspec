@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency "sqliterate"
   s.add_dependency "ti_rails_auth"
   s.add_dependency "resque"
+  s.add_dependency "cztop"
 
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "jsonpath"

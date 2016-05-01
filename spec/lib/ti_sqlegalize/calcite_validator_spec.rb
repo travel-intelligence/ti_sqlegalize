@@ -1,29 +1,23 @@
 # encoding: utf-8
-require 'spec_helper'
+require 'rails_helper'
 require 'ti_sqlegalize/calcite_validator'
+require 'ti_sqlegalize/zmq_socket'
 
 RSpec.describe TiSqlegalize::CalciteValidator do
 
-  let!(:v) { TiSqlegalize::CalciteValidator.new }
+  let(:simple_sql) { "select * from hr.emps" }
 
-  xit "validates a correct query" do
-    ast = v.parse("select * from t")
-    expect(ast.valid?).to eq(true)
-  end
+  it "communicates successfully" do
 
-  xit "validates a incorrect query" do
-    ast = v.parse("this is not a valid SQL query")
-    expect(ast.valid?).to eq(false)
-  end
+    endpoint = "tcp://127.0.0.1:5555"
 
-  it "validates a correct query" do
-    pending("Tables extraction not implemented in CalciteValidator")
-    ast = v.parse("select a from t1, (select b,c from d.t) t2")
-    expect(ast.tables).to eq(["d.t", "t1"])
-  end
+    rep = with_a_calcite_server_at(endpoint) do
+      socket = TiSqlegalize::ZMQSocket.new(endpoint)
+      validator = TiSqlegalize::CalciteValidator.new(socket)
+      validator.parse(simple_sql, [hr_schema])
+    end
 
-  xit "normalize a query" do
-    ast = v.parse("select a from t1, (select b,c from d.t) t2")
-    expect(ast.sql).to eq("TBD")
+    expect(rep).to be_valid
+    expect(rep.sql).to eq("SELECT *\nFROM `HR`.`EMPS`")
   end
 end

@@ -2,16 +2,19 @@
 require 'rails_helper'
 require 'ti_sqlegalize/sqliterate_validator'
 require 'ti_sqlegalize/calcite_validator'
+require 'ti_sqlegalize/zmq_socket'
 
 RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
   before(:each) { Resque.redis = MockRedis.new }
 
-  let!(:validator) { TiSqlegalize::SQLiterateValidator }
+  let!(:validator) { TiSqlegalize::SQLiterateValidator.new }
 
   before(:each) do
     allow(TiSqlegalize).to \
-      receive(:validator).and_return(-> { validator.new })
+      receive(:validator).and_return(-> { validator })
+    allow(TiSqlegalize).to \
+      receive(:schemas).and_return([hr_schema])
   end
 
   let!(:queue) { Resque.queue_from_class(TiSqlegalize::Query) }
@@ -131,19 +134,27 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
   context "with the Calcite validator" do
 
-    let!(:validator) { TiSqlegalize::CalciteValidator }
+    let!(:endpoint) { "tcp://127.0.0.1:5555" }
+
+    let!(:validator) do
+      socket = TiSqlegalize::ZMQSocket.new(endpoint)
+      TiSqlegalize::CalciteValidator.new(socket)
+    end
 
     let!(:user) { Fabricate(:user) }
 
     before(:each) { sign_in user }
 
     it "translates SQL" do
-      pending("Calcite validation not implemented")
       expect(Resque.size(queue)).to eq(0)
-      rep = { queries: { sql: "select a from t1, (select b,c from d.t) t2" } }
-      post_api :create, rep
+      rep = { queries: { sql: "select * from hr.emps" } }
+
+      with_a_calcite_server_at(endpoint) do
+        post_api :create, rep
+      end
+
       expect(response.status).to eq(201)
-      expect(first_json_at '$.queries.sql').to eq("TBD")
+      expect(first_json_at '$.queries.sql').to eq("SELECT *\nFROM `HR`.`EMPS`")
     end
   end
 end
