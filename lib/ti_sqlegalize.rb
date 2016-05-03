@@ -28,6 +28,7 @@ module TiSqlegalize
   end
 
   def schemas
-    @schemas || []
+    return @schemas if @schemas
+    self.schemas = -> { [] }
   end
 end

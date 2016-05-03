@@ -14,7 +14,7 @@ module TiSqlegalize
 
       parser = TiSqlegalize.validator.call
 
-      validation = parser.parse sql, TiSqlegalize.schemas
+      validation = parser.parse sql, TiSqlegalize.schemas.call
 
       if validation.valid?
         query = Query.new validation.sql

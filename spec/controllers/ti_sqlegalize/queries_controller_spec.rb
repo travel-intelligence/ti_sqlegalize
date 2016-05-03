@@ -14,7 +14,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
     allow(TiSqlegalize).to \
       receive(:validator).and_return(-> { validator })
     allow(TiSqlegalize).to \
-      receive(:schemas).and_return([hr_schema])
+      receive(:schemas).and_return(-> { [hr_schema] })
   end
 
   let!(:queue) { Resque.queue_from_class(TiSqlegalize::Query) }
