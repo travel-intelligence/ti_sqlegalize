@@ -13,26 +13,18 @@ module TiSqlegalize
       return invalid_params unless sql && sql.is_a?(String)
 
       parser = TiSqlegalize.validator.call
+
       validation = parser.parse sql, TiSqlegalize.schemas
-      return invalid_params unless validation.valid?
 
-      normalized_sql = validation.sql
+      if validation.valid?
+        query = Query.new validation.sql
+        query.create!
+        query.enqueue!
 
-      query = Query.new normalized_sql
-      query.create!
-      query.enqueue!
-
-      href = query_url(query.id)
-      rep = {
-        queries: {
-          id: query.id,
-          href: href,
-          sql: normalized_sql,
-          tables: validation.tables
-        }
-      }
-      response.headers['Location'] = href
-      render_api json: rep, status: 201
+        render_create query
+      else
+        render_validation_error validation
+      end
     end
 
     def show
@@ -60,6 +52,30 @@ module TiSqlegalize
       else
         render_api json: {}, status: 404
       end
+    end
+
+    private
+
+    def render_create(query)
+      href = query_url(query.id)
+      rep = {
+        queries: {
+          id: query.id,
+          href: href,
+          sql: query.statement
+        }
+      }
+      response.headers['Location'] = href
+      render_api json: rep, status: 201
+    end
+
+    def render_validation_error(validation)
+      rep = {
+        errors: [{
+          detail: validation.hint
+        }]
+      }
+      render_api json: rep, status: 400
     end
   end
 end

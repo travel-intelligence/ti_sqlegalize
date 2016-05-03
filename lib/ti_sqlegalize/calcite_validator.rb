@@ -24,18 +24,19 @@ module TiSqlegalize
         fail "Invalid response" unless m["validation"]
         @valid = m["validation"]["valid"]
         @sql = m["validation"]["sql"]
+        @hint = m["validation"]["hint"]
       end
 
       def valid?
         @valid
       end
 
-      def tables
-        []
-      end
-
       def sql
         @sql
+      end
+
+      def hint
+        @hint
       end
     end
 
@@ -45,9 +46,8 @@ module TiSqlegalize
 
     def parse(sql, schemas)
       req = ValidationRequest.new(sql, schemas).message
-      @socket << req
-      rep = @socket.receive
-      ValidationResponse.new(rep.pop)
+      rep = @socket.response_for req
+      ValidationResponse.new(rep)
     end
   end
 end

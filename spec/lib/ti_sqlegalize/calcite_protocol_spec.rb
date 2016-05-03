@@ -22,15 +22,16 @@ RSpec.describe TiSqlegalize::CalciteValidator do
     msg = {
       "validation": {
         "valid": true,
-        "sql": simple_sql
+        "sql": simple_sql,
+        "hint": "nothing to say"
       }
     }.to_json
 
     rep = TiSqlegalize::CalciteValidator::ValidationResponse.new(msg)
 
     expect(rep).to be_valid
-    expect(rep.tables).to eq([])
     expect(rep.sql).to eq(simple_sql)
+    expect(rep.hint).to eq("nothing to say")
   end
 
   it "rejects non-JSON response" do

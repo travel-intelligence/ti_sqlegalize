@@ -33,7 +33,6 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
       expect(first_json_at '$.queries.id').not_to be_nil
       expect(first_json_at '$.queries.href').to eq(location)
       expect(first_json_at '$.queries.sql').to eq(rep[:queries][:sql])
-      expect(first_json_at '$.queries.tables').not_to be_empty
     end
 
     it "complains on missing query" do
@@ -46,14 +45,6 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
       rep = { queries: { sql: "this is not a valid SQL query" } }
       post_api :create, rep
       expect(response.status).to eq(400)
-    end
-
-    it "extract all tables from a valid query" do
-      expect(Resque.size(queue)).to eq(0)
-      rep = { queries: { sql: "select a from t1, (select b,c from d.t) t2" } }
-      post_api :create, rep
-      expect(response.status).to eq(201)
-      expect(first_json_at '$.queries.tables').to eq(["d.t", "t1"])
     end
 
     context "with a query engine" do
@@ -143,10 +134,12 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
     let!(:user) { Fabricate(:user) }
 
-    before(:each) { sign_in user }
+    before(:each) do
+      sign_in user
+      expect(Resque.size(queue)).to eq(0)
+    end
 
     it "translates SQL" do
-      expect(Resque.size(queue)).to eq(0)
       rep = { queries: { sql: "select * from hr.emps" } }
 
       with_a_calcite_server_at(endpoint) do
@@ -155,6 +148,18 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
       expect(response.status).to eq(201)
       expect(first_json_at '$.queries.sql').to eq("SELECT *\nFROM `HR`.`EMPS`")
+    end
+
+    it "reports query validation errors" do
+      rep = { queries: { sql: "select * from not_a_db.emps" } }
+
+      with_a_calcite_server_at(endpoint) do
+        post_api :create, rep
+      end
+
+      expect(response.status).to eq(400)
+      expect(first_json_at '$.errors[0].detail').to \
+        match(/Table 'NOT_A_DB.EMPS' not found/)
     end
   end
 end

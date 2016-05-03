@@ -8,12 +8,9 @@ module TiSqlegalize
       @socket.connect(endpoint)
     end
 
-    def <<(msg)
+    def response_for(msg)
       @socket << msg
-    end
-
-    def receive
-      @socket.receive
+      @socket.receive.pop
     end
   end
 end

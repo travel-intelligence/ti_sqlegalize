@@ -13,8 +13,8 @@ module TiSqlegalize
       @sql
     end
 
-    def tables
-      @ast.tables
+    def hint
+      ""
     end
   end
 

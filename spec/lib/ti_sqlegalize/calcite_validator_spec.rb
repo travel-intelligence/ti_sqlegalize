@@ -19,5 +19,6 @@ RSpec.describe TiSqlegalize::CalciteValidator do
 
     expect(rep).to be_valid
     expect(rep.sql).to eq("SELECT *\nFROM `HR`.`EMPS`")
+    expect(rep.hint).to eq("")
   end
 end
