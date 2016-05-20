@@ -3,7 +3,7 @@ require 'rails_helper'
 require 'ti_sqlegalize/calcite_validator'
 require 'ti_sqlegalize/zmq_socket'
 
-RSpec.describe TiSqlegalize::CalciteValidator do
+RSpec.describe TiSqlegalize::CalciteValidator, calcite: true do
 
   let(:simple_sql) { "select * from hr.emps" }
 

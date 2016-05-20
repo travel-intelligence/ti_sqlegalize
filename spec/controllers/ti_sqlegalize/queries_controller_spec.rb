@@ -123,7 +123,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
     end
   end
 
-  context "with the Calcite validator" do
+  context "with the Calcite validator", calcite: true do
 
     let!(:endpoint) { "tcp://127.0.0.1:5555" }
 

@@ -37,12 +37,12 @@ RSpec.describe TiSqlegalize::CalciteValidator do
   it "rejects non-JSON response" do
     expect do
       TiSqlegalize::CalciteValidator::ValidationResponse.new("not json")
-    end.to raise_error
+    end.to raise_error(JSON::ParserError)
   end
 
   it "rejects invalid JSON response" do
     expect do
       TiSqlegalize::CalciteValidator::ValidationResponse.new("{}")
-    end.to raise_error
+    end.to raise_error(TiSqlegalize::CalciteValidator::InvalidResponse)
   end
 end

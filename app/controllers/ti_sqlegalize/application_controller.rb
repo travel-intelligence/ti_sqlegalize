@@ -2,10 +2,16 @@ require 'rails-api/action_controller/api'
 require 'ti_rails_auth/controller'
 
 module TiSqlegalize
+
+  class InvalidParams < StandardError
+  end
+
   class ApplicationController < ActionController::API
 
     include ActionController::MimeResponds
     include TiRailsAuth::Controller
+
+    rescue_from InvalidParams, with: :invalid_params
 
     rescue_from Exception, with: :exception_handler if Rails.env.production?
 

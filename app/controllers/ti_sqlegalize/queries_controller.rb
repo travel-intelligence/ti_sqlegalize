@@ -6,11 +6,7 @@ module TiSqlegalize
     ensure_signed_in
 
     def create
-      query = params['queries']
-      return invalid_params unless query && query.is_a?(Hash)
-
-      sql = query['sql']
-      return invalid_params unless sql && sql.is_a?(String)
+      sql = validate_param_sql
 
       parser = TiSqlegalize.validator.call
 
@@ -55,6 +51,14 @@ module TiSqlegalize
     end
 
     private
+
+    def validate_param_sql
+      queries = params['queries']
+      raise InvalidParams unless queries && queries.is_a?(Hash)
+      sql = queries['sql']
+      raise InvalidParams unless sql && sql.is_a?(String)
+      sql
+    end
 
     def render_create(query)
       href = query_url(query.id)

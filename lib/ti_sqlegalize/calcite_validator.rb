@@ -18,10 +18,13 @@ module TiSqlegalize
       end
     end
 
+    class InvalidResponse < StandardError
+    end
+
     class ValidationResponse
       def initialize(msg)
         m = ActiveSupport::JSON.decode msg
-        fail "Invalid response" unless m["validation"]
+        fail InvalidResponse unless m["validation"]
         @valid = m["validation"]["valid"]
         @sql = m["validation"]["sql"]
         @hint = m["validation"]["hint"]
