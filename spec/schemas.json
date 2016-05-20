@@ -1,0 +1,16 @@
+{
+  "schemas": [
+    { "name": "MARKET", "description": "Market schema", "tables": [
+      { "name": "BOOKINGS_OND", "columns": [
+        { "name": "BOARD_CITY", "domain": "IATA_CITY" }
+      ]}
+    ]},
+    { "name": "HR", "description": "HR schema", "tables": [
+      { "name": "EMPS", "columns": [
+        { "name": "EMPID", "domain": "INTEGER" },
+        { "name": "EMPNAME", "domain": "VARCHAR" },
+        { "name": "DEPTNO", "domain": "INTEGER" }
+      ]}
+    ]}
+  ]
+}

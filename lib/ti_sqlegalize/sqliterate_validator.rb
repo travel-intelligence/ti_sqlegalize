@@ -1,3 +1,6 @@
+# encoding: utf-8
+require 'sqliterate'
+
 module TiSqlegalize
   class SQLiterateAst
     def initialize(sql, ast)

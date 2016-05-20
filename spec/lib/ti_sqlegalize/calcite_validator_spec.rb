@@ -3,7 +3,12 @@ require 'rails_helper'
 require 'ti_sqlegalize/calcite_validator'
 require 'ti_sqlegalize/zmq_socket'
 
-RSpec.describe TiSqlegalize::CalciteValidator do
+RSpec.describe TiSqlegalize::CalciteValidator, calcite: true do
+
+  before(:each) do
+    mock_domains
+    mock_schemas
+  end
 
   let(:simple_sql) { "select * from hr.emps" }
 
@@ -14,7 +19,8 @@ RSpec.describe TiSqlegalize::CalciteValidator do
     rep = with_a_calcite_server_at(endpoint) do
       socket = TiSqlegalize::ZMQSocket.new(endpoint)
       validator = TiSqlegalize::CalciteValidator.new(socket)
-      validator.parse(simple_sql, [hr_schema])
+      schemas = [TiSqlegalize.schemas['HR']]
+      validator.parse(simple_sql, schemas)
     end
 
     expect(rep).to be_valid

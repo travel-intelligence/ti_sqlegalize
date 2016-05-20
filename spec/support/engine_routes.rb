@@ -1,3 +1,4 @@
+# encoding: utf-8
 module SpecRoutes
   def self.included(base)
     base.routes { TiSqlegalize::Engine.routes }

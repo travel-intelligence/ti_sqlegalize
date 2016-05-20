@@ -4,16 +4,23 @@ require 'ti_sqlegalize/calcite_validator'
 
 RSpec.describe TiSqlegalize::CalciteValidator do
 
+  before(:each) do
+    mock_domains
+    mock_schemas
+  end
+
   let(:simple_sql) { "select * from hr.emps" }
 
   it "formats validation requests" do
-
-    req = TiSqlegalize::CalciteValidator::ValidationRequest.new(simple_sql, [hr_schema])
+    schemas = [TiSqlegalize.schemas['HR']]
+    req = TiSqlegalize::CalciteValidator::ValidationRequest.new(simple_sql, schemas)
 
     expect_json(req.message, [
       ['$.validation.sql', eq(simple_sql)],
       ['$.validation.schemas[0].name', eq("HR")],
-      ['$.validation.schemas[0].tables[0].name', eq("EMPS")]
+      ['$.validation.schemas[0].tables[0].name', eq("EMPS")],
+      ['$.validation.schemas[0].tables[0].columns[0].name', eq("EMPID")],
+      ['$.validation.schemas[0].tables[0].columns[0].type', eq("INTEGER")]
     ])
   end
 
@@ -37,12 +44,12 @@ RSpec.describe TiSqlegalize::CalciteValidator do
   it "rejects non-JSON response" do
     expect do
       TiSqlegalize::CalciteValidator::ValidationResponse.new("not json")
-    end.to raise_error
+    end.to raise_error(JSON::ParserError)
   end
 
   it "rejects invalid JSON response" do
     expect do
       TiSqlegalize::CalciteValidator::ValidationResponse.new("{}")
-    end.to raise_error
+    end.to raise_error(TiSqlegalize::CalciteValidator::InvalidResponse)
   end
 end

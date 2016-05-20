@@ -1,3 +1,4 @@
+# encoding: utf-8
 module TiSqlegalize
 
   class CalciteValidator
@@ -10,18 +11,35 @@ module TiSqlegalize
 
       def message
         {
-          "validation" => {
-            "sql" => @sql,
-            "schemas" => @schemas
+          validation: {
+            sql: @sql,
+            schemas: @schemas.map do |s|
+              {
+                name: s.name,
+                tables: s.tables.map do |t|
+                  {
+                    name: t.name,
+                    columns: t.columns.map do |c|
+                      {
+                        name: c.name, type: c.domain.primitive
+                      }
+                    end
+                  }
+                end
+              }
+            end
           }
         }.to_json
       end
     end
 
+    class InvalidResponse < StandardError
+    end
+
     class ValidationResponse
       def initialize(msg)
         m = ActiveSupport::JSON.decode msg
-        fail "Invalid response" unless m["validation"]
+        fail InvalidResponse unless m["validation"]
         @valid = m["validation"]["valid"]
         @sql = m["validation"]["sql"]
         @hint = m["validation"]["hint"]

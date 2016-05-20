@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'sqliterate'
 require 'resque'
 
@@ -5,16 +6,21 @@ module TiSqlegalize
   class QueriesController < TiSqlegalize::ApplicationController
     ensure_signed_in
 
-    def create
-      query = params['queries']
-      return invalid_params unless query && query.is_a?(Hash)
+    before_action do
+      @q_offset = [params.fetch(:offset, 0).to_i, 0].max
+      @q_limit = [
+          [params.fetch(:limit, 1).to_i, 1].max,
+          TiSqlegalize::Config.max_body_limit
+        ].min
+    end
 
-      sql = query['sql']
-      return invalid_params unless sql && sql.is_a?(String)
+    def create
+      validate_create!
 
       parser = TiSqlegalize.validator.call
+      schemas = TiSqlegalize.schemas.all
 
-      validation = parser.parse sql, TiSqlegalize.schemas.call
+      validation = parser.parse @query_sql, schemas
 
       if validation.valid?
         query = Query.new validation.sql
@@ -28,33 +34,26 @@ module TiSqlegalize
     end
 
     def show
-      id = params[:id]
-      offset = [params[:offset].to_i, 0].max
-      limit = [[params[:limit].to_i, 1].max, 10000].min
+      validate_show!
 
-      query = Query.find(id)
-      if query
-        rep = {
-          queries: {
-            id: id,
-            href: query_url(id),
-            status: query.status,
-            message: query.message,
-            offset: offset,
-            limit: limit,
-            quota: query.quota,
-            count: query.count,
-            schema: query.schema,
-            rows: query[offset, limit]
-          }
-        }
-        render_api json: rep, status: 200
-      else
-        render_api json: {}, status: 404
-      end
+      query = Query.find @query_id
+
+      render_show query
     end
 
     private
+
+    def validate_show!
+      permitted = params.permit(:id)
+      @query_id = permitted[:id]
+      raise InvalidParams unless @query_id
+    end
+
+    def validate_create!
+      permitted = params.require(:queries).permit(:sql)
+      @query_sql = permitted[:sql]
+      raise InvalidParams unless @query_sql
+    end
 
     def render_create(query)
       href = query_url(query.id)
@@ -69,6 +68,31 @@ module TiSqlegalize
       render_api json: rep, status: 201
     end
 
+    def render_show(query)
+      if query
+        rep = {
+          queries: {
+            id: query.id,
+            href: query_url(query.id),
+            status: query.status,
+            message: query.message,
+            offset: @q_offset,
+            limit: @q_limit,
+            quota: query.quota,
+            count: query.count,
+            schema: query.schema.map do |c|
+              attr_type = Legacy.as_impala_type c.domain
+              [c.name, attr_type]
+            end,
+            rows: query[@q_offset, @q_limit]
+          }
+        }
+        render_api json: rep, status: 200
+      else
+        render_api json: {}, status: 404
+      end
+    end
+
     def render_validation_error(validation)
       rep = {
         errors: [{
@@ -76,6 +100,31 @@ module TiSqlegalize
         }]
       }
       render_api json: rep, status: 400
+    end
+
+    class Legacy
+      TYPES_MAP = {
+        "BOOLEAN" => "boolean",
+        "TINYINT" => "tinyint",
+        "SMALLINT" => "smallint",
+        "INTEGER" => "int",
+        "INT" => "int",
+        "BIGINT" => "bigint",
+        "DECIMAL" => "decimal",
+        "NUMERIC" => "decimal",
+        "REAL" => "float",
+        "FLOAT" => "float",
+        "DOUBLE" => "double",
+        "CHAR" => "string",
+        "VARCHAR" => "string",
+        "TIMESTAMP" => "timestamp"
+      }
+
+      def self.as_impala_type(domain)
+        type = TYPES_MAP[domain.primitive]
+        fail "Unknown type #{domain.primitive}" unless type
+        type
+      end
     end
   end
 end
