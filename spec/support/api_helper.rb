@@ -28,7 +28,11 @@ module ApiHelper
   def jsonapi_rel(rel)
     JsonPath.on(response.body, "$.data.relationships.#{rel}").first
   end
-  
+
+  def jsonapi_error
+    JsonPath.on(response.body, '$.errors[0].code').first
+  end
+
   def get_api(action, options = {})
     get action, options.merge(format: :jsonapi)
   end

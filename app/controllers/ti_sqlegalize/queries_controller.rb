@@ -13,12 +13,13 @@ module TiSqlegalize
     end
 
     before_action :validate_create, only: [:create]
+    before_action :validate_show, only: [:show]
 
     def create
       parser = TiSqlegalize.validator.call
       schemas = TiSqlegalize.schemas.call
 
-      validation = parser.parse query_sql, schemas
+      validation = parser.parse @query_sql, schemas
 
       if validation.valid?
         query = Query.new validation.sql
@@ -32,22 +33,23 @@ module TiSqlegalize
     end
 
     def show
-      id = params[:id]
-
-      query = Query.find(id)
+      query = Query.find @query_id
 
       render_show query
     end
 
     private
 
-    def validate_create
-      @query_data = params.require(:queries).permit(:sql)
-      raise InvalidParams unless @query_data[:sql]
+    def validate_show
+      permitted = params.permit(:id)
+      @query_id = permitted[:id]
+      raise InvalidParams unless @query_id
     end
 
-    def query_sql
-      @query_data[:sql]
+    def validate_create
+      permitted = params.require(:queries).permit(:sql)
+      @query_sql = permitted[:sql]
+      raise InvalidParams unless @query_sql
     end
 
     def render_create(query)

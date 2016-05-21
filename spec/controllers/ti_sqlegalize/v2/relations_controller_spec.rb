@@ -20,6 +20,25 @@ describe TiSqlegalize::V2::RelationsController do
 
     before(:each) { sign_in user }
 
+    it "complains on unknown resource" do
+      get_api :show, query_id: "not_a_query"
+      expect(response.status).to eq(404)
+      expect(jsonapi_error).to eq("not found")
+    end
+
+    it "complains on invalid parameter" do
+      get_api :show, query_id: [1,2,"not_an_id"]
+      expect(response.status).to eq(400)
+      expect(jsonapi_error).to eq("invalid parameters")
+    end
+
+    it "complains when not ready" do
+      unfinished_query = Fabricate(:created_query)
+      get_api :show, query_id: unfinished_query.id
+      expect(response.status).to eq(409)
+      expect(jsonapi_error).to eq("conflict")
+    end
+
     it "fetches a query result" do
       get_api :show, query_id: query.id
       expect(response.status).to eq(200)

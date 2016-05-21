@@ -5,10 +5,14 @@ module V2
   class RelationsController < TiSqlegalize::ApplicationController
     ensure_signed_in
 
-    def show
-      id = params[:query_id]
+    before_action do
+      permitted = params.permit(:query_id)
+      @query_id = permitted[:query_id]
+      raise InvalidParams unless @query_id
+    end
 
-      query = Query.find(id)
+    def show
+      query = Query.find @query_id
 
       render_show query
     end

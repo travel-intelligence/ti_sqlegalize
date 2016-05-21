@@ -7,13 +7,10 @@ module V2
   private
 
     def validate_create
-      @query_data = params.require(:data).permit(:type, attributes: [ :sql ])
-      raise InvalidParams unless @query_data[:type] == 'query' && \
-                                 @query_data[:attributes][:sql]
-    end
-
-    def query_sql
-      @query_data[:attributes][:sql]
+      permitted = params.require(:data).permit(:type, attributes: [ :sql ])
+      raise InvalidParams unless permitted[:type] == 'query'
+      @query_sql = permitted[:attributes][:sql]
+      raise InvalidParams unless @query_sql
     end
 
     def href(query)

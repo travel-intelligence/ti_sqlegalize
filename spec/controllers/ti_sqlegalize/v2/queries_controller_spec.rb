@@ -42,6 +42,31 @@ describe TiSqlegalize::V2::QueriesController do
       expect(jsonapi_attr 'sql').to eq(sql)
     end
 
+    it "complains on unknown resource" do
+      get_api :show, id: "not_a_query"
+      expect(response.status).to eq(404)
+      expect(jsonapi_error).to eq("not found")
+    end
+
+    it "complains on invalid parameter" do
+      get_api :show, id: [1,2,"not_an_id"]
+      expect(response.status).to eq(400)
+      expect(jsonapi_error).to eq("invalid parameters")
+    end
+
+    it "fetches an unfinished query" do
+      query = Fabricate(:created_query)
+
+      get_api :show, id: query.id
+      expect(response.status).to eq(200)
+      expect(jsonapi_type).to eq('query')
+      expect(jsonapi_id).to eq(query.id)
+      expect(jsonapi_data).to reside_at(v2_query_url(query.id))
+      expect(jsonapi_attr 'status').to eq('created')
+      expect(jsonapi_attr 'sql').to eq(query.statement)
+      expect(jsonapi_rel 'result').to be_nil
+    end
+
     it "fetches a finished query" do
       query = Fabricate(:finished_query)
 
