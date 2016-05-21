@@ -6,21 +6,22 @@ module V2
 
   private
 
-    def validate_param_sql
-      data = params['data']
-      raise InvalidParams unless data && data.is_a?(Hash)
-      type = data['type']
-      raise InvalidParams unless type == 'query'
-      attributes = data['attributes']
-      raise InvalidParams unless attributes && attributes.is_a?(Hash)
-      sql = attributes['sql']
-      raise InvalidParams unless sql && sql.is_a?(String)
-      sql
+    def validate_create
+      @query_data = params.require(:data).permit(:type, attributes: [ :sql ])
+      raise InvalidParams unless @query_data[:type] == 'query' && \
+                                 @query_data[:attributes][:sql]
     end
 
-    def render_create(query)
-      href = v2_query_url(query.id)
-      rep = {
+    def query_sql
+      @query_data[:attributes][:sql]
+    end
+
+    def href(query)
+      v2_query_url(query.id)
+    end
+
+    def jsonapi(query)
+      {
         data: {
           type: 'query',
           id: query.id,
@@ -29,12 +30,37 @@ module V2
             status: query.status
           },
           links: {
-            :self => href
+            :self => href(query)
           }
-        }
+        }.merge(
+          if query.status == :finished
+            {
+              relationships: {
+                result: {
+                  links: {
+                    related: v2_query_result_url(query.id)
+                  }
+                }
+              }
+            }
+          else
+            {}
+          end
+        )
       }
-      response.headers['Location'] = href
-      render_api json: rep, status: 201
+    end
+
+    def render_create(query)
+      response.headers['Location'] = href(query)
+      render_api json: jsonapi(query), status: 201
+    end
+
+    def render_show(query)
+      if query
+        render_api json: jsonapi(query), status: 200
+      else
+        render_not_found
+      end
     end
   end
 

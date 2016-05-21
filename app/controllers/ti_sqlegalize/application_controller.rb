@@ -11,21 +11,38 @@ module TiSqlegalize
     include ActionController::MimeResponds
     include TiRailsAuth::Controller
 
-    rescue_from InvalidParams, with: :invalid_params
-
-    rescue_from Exception, with: :exception_handler if Rails.env.production?
+    rescue_from InvalidParams, with: :render_invalid_params
+    rescue_from ActionController::ParameterMissing, with: :render_invalid_params
+    rescue_from Exception, with: :render_exception if Rails.env.production?
 
     protected
 
-    def render_error(code)
-      render_api json: {}, status: code
+    def render_error(status, code=nil)
+      rep = {
+        errors: [
+          {
+            status: status.to_s,
+          }.merge(
+            code ? { code: code.to_s } : {}
+          )
+        ]
+      }
+      render_api json: rep, status: status
     end
 
-    def invalid_params
-      render_error 400
+    def render_invalid_params
+      render_error 400, "invalid parameters"
     end
 
-    def exception_handler(exception)
+    def render_not_found
+      render_error 404, "not found"
+    end
+
+    def render_conflict
+      render_error 409, "conflict"
+    end
+
+    def render_exception(exception)
       msg = ["#{exception.class}: #{exception}"] + exception.backtrace.take(5)
       logger.error msg.join("\n")
       respond_to do |format|

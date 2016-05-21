@@ -21,6 +21,10 @@ module ApiHelper
     JsonPath.on(response.body, '$.data.id').first
   end
 
+  def jsonapi_attr(a)
+    JsonPath.on(response.body, "$.data.attributes.#{a}").first
+  end
+
   def jsonapi_rel(rel)
     JsonPath.on(response.body, "$.data.relationships.#{rel}").first
   end
