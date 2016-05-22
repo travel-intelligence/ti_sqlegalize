@@ -21,16 +21,23 @@ module ApiHelper
     JsonPath.on(response.body, '$.data.id').first
   end
 
-  def jsonapi_attr(a)
-    JsonPath.on(response.body, "$.data.attributes.#{a}").first
-  end
-
-  def jsonapi_rel(rel)
-    JsonPath.on(response.body, "$.data.relationships.#{rel}").first
-  end
-
   def jsonapi_error
     JsonPath.on(response.body, '$.errors[0].code').first
+  end
+
+  def jsonapi_attr(a, root=nil)
+    JsonPath.on(root || response.body, "$.data.attributes.#{a}").first
+  end
+
+  def jsonapi_rel(rel, root=nil)
+    JsonPath.on(root || response.body, "$.data.relationships.#{rel}").first
+  end
+
+  def jsonapi_inc(type, id)
+    JsonPath.on(response.body, "$.included").first.find do |included|
+      data = included['data']
+      data && data['type'] == type && data['id'] == id
+    end
   end
 
   def get_api(action, options = {})
@@ -54,6 +61,16 @@ module ApiHelper
       actual && \
       actual['links'] && \
       actual['links']['self'] == expected
+    end
+  end
+
+  matcher :be_identified_by do |expected|
+    type, id = expected.to_a.first
+    match do |actual|
+      actual && \
+      actual['data'] && \
+      actual['data']['type'] == type && \
+      actual['data']['id'] == id
     end
   end
 end

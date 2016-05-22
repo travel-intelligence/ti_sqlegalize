@@ -18,7 +18,10 @@ describe TiSqlegalize::V2::RelationsController do
 
     let(:user) { Fabricate(:user) }
 
-    before(:each) { sign_in user }
+    before(:each) do
+      mock_domains
+      sign_in user
+    end
 
     it "complains on unknown resource" do
       get_api :show, query_id: "not_a_query"
@@ -47,10 +50,18 @@ describe TiSqlegalize::V2::RelationsController do
       expect(jsonapi_data).to reside_at(v2_query_result_url(query.id))
       expect(jsonapi_attr 'sql').to eq(query.statement)
       expect(jsonapi_attr 'heading').to eq(['a'])
+
       expect(jsonapi_rel 'heading_a').to \
         relate_to(v2_query_result_heading_url(query.id, 'a'))
+
+      expect(jsonapi_rel 'heading_a').to \
+        be_identified_by('domain' => 'IATA_CITY')
+
       expect(jsonapi_rel 'body').to \
         relate_to(v2_query_result_body_url(query.id))
+
+      iata_city = jsonapi_inc 'domain', 'IATA_CITY'
+      expect(jsonapi_attr 'name', iata_city).to eq('IATA_CITY')
     end
   end
 end

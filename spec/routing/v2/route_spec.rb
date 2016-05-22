@@ -55,4 +55,20 @@ describe "entry" do
       action: "index"
     )
   end
+
+  it "routes to domains" do
+    expect(get: "/v2/domains/42").to route_to(
+      controller: "ti_sqlegalize/v2/domains",
+      action: "show",
+      id: "42"
+    )
+  end
+
+  it "routes to domain relations" do
+    expect(get: "/v2/domains/42/relations").to route_to(
+      controller: "ti_sqlegalize/v2/domains",
+      action: "show_relations",
+      domain_id: "42"
+    )
+  end
 end

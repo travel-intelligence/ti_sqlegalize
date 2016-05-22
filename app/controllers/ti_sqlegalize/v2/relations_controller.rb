@@ -1,8 +1,11 @@
-
+# encoding: utf-8
 module TiSqlegalize
 module V2
 
   class RelationsController < TiSqlegalize::ApplicationController
+
+    include TiSqlegalize::V2::Concerns::DomainRepresentable
+
     ensure_signed_in
 
     before_action do
@@ -19,10 +22,6 @@ module V2
 
   private
 
-    def href(query)
-      v2_query_result_url(query.id)
-    end
-
     def jsonapi(query)
       heading = query.schema.map do |name, type|
         [ "heading_#{name}", {
@@ -34,6 +33,11 @@ module V2
             id: type
           }
         }]
+      end
+
+      included = query.schema.map { |_, type| type }.uniq.map do |type|
+        domain = Domain.find(type)
+        domain_jsonapi(domain, relationships: false)
       end
 
       {
@@ -52,9 +56,10 @@ module V2
             }
           }.merge(Hash[heading]),
           links: {
-            :self => href(query)
+            :self => v2_query_result_url(query.id)
           }
-        }
+        },
+        included: included
       }
     end
 

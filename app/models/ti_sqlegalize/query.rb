@@ -1,3 +1,4 @@
+# encoding: utf-8
 module TiSqlegalize
   class Query
     @queue = :query

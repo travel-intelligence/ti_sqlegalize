@@ -1,3 +1,4 @@
+# encoding: utf-8
 TiSqlegalize::Engine.routes.draw do
   get '/profile', to: redirect('/profile.txt')
 
@@ -11,5 +12,8 @@ TiSqlegalize::Engine.routes.draw do
       get 'result/body', to: 'bodies#show'
     end
     resources :schemas, only: [:index, :show]
+    resources :domains, only: [:show] do
+      get 'relations', to: 'domains#show_relations'
+    end
   end
 end

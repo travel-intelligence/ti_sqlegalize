@@ -13,6 +13,15 @@ module SampleSchemas
       }]
     }
   end
+
+  def mock_domains
+    domains = Hash[[
+      TiSqlegalize::Domain.new(name: 'IATA_CITY', primitive: 'VARCHAR')
+    ].map { |d| [d.name, d] }]
+
+    allow(TiSqlegalize).to \
+      receive(:domains).and_return(-> { domains })
+  end
 end
 
 RSpec.configure do |c|

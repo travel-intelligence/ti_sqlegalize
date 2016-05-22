@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'rails-api/action_controller/api'
 require 'ti_rails_auth/controller'
 
@@ -40,6 +41,10 @@ module TiSqlegalize
 
     def render_conflict
       render_error 409, "conflict"
+    end
+
+    def render_internal_error
+      render_error 500, "internal error"
     end
 
     def render_exception(exception)
