@@ -6,11 +6,12 @@ module TiSqlegalize
   class QueriesController < TiSqlegalize::ApplicationController
     ensure_signed_in
 
-    MAX_LIMIT = 10000
-
     before_action do
       @q_offset = [params.fetch(:offset, 0).to_i, 0].max
-      @q_limit = [[params.fetch(:limit, 1).to_i, 1].max, MAX_LIMIT].min
+      @q_limit = [
+          [params.fetch(:limit, 1).to_i, 1].max,
+          TiSqlegalize::Config.max_body_limit
+        ].min
     end
 
     before_action :validate_create, only: [:create]

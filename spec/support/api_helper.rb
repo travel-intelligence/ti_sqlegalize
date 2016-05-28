@@ -9,6 +9,10 @@ module ApiHelper
     JsonPath.on(response.body, path).first
   end
 
+  def jsonapi_meta(a)
+    JsonPath.on(response.body, "$.meta.#{a}").first
+  end
+
   def jsonapi_data
     JsonPath.on(response.body, '$.data').first
   end
