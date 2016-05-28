@@ -17,10 +17,30 @@ module SchemaHelper
   def mock_domains
     domains = Hash[[
       TiSqlegalize::Domain.new(name: 'IATA_CITY', primitive: 'VARCHAR')
-    ].map { |d| [d.name, d] }]
+    ].map { |d| [d.id, d] }]
 
     allow(TiSqlegalize).to \
       receive(:domains).and_return(-> { domains })
+  end
+
+  def mock_schemas
+    schemas = Hash[[
+      TiSqlegalize::Schema.new(
+        name: 'MARKET',
+        description: 'Market schema',
+        tables: [
+          TiSqlegalize::Table.new(
+            name: 'BOOKINGS_OND',
+            columns: [
+              TiSqlegalize::Column.new(name: 'BOARD_CITY', domain: 'IATA_CITY')
+            ]
+          )
+        ]
+      )
+    ].map { |d| [d.id, d] }]
+
+    allow(TiSqlegalize).to \
+      receive(:schemas).and_return(-> { schemas })
   end
 end
 

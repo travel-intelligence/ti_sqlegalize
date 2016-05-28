@@ -30,7 +30,7 @@ module TiSqlegalize
 
   def schemas
     return @schemas if @schemas
-    self.schemas = -> { [] }
+    self.schemas = -> { {} }
   end
 
   def domains=(d)

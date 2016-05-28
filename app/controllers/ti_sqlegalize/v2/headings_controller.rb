@@ -15,7 +15,7 @@ module V2
       raise InvalidParams unless @query_id && @attr_id
     end
 
-    def show
+    def show_by_query
       query = Query.find @query_id
 
       if query

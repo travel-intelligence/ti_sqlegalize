@@ -9,38 +9,41 @@ module ApiHelper
     JsonPath.on(response.body, path).first
   end
 
+  def jsonapi_root
+    JsonPath.on(response.body, "$").first
+  end
+
   def jsonapi_meta(a)
     JsonPath.on(response.body, "$.meta.#{a}").first
-  end
-
-  def jsonapi_data
-    JsonPath.on(response.body, '$.data').first
-  end
-
-  def jsonapi_type
-    JsonPath.on(response.body, '$.data.type').first
-  end
-
-  def jsonapi_id
-    JsonPath.on(response.body, '$.data.id').first
   end
 
   def jsonapi_error
     JsonPath.on(response.body, '$.errors[0].code').first
   end
 
+  def jsonapi_data
+    JsonPath.on(response.body, '$.data').first
+  end
+
+  def jsonapi_type(root=nil)
+    JsonPath.on(root || jsonapi_data, '$.type').first
+  end
+
+  def jsonapi_id(root=nil)
+    JsonPath.on(root || jsonapi_data, '$.id').first
+  end
+
   def jsonapi_attr(a, root=nil)
-    JsonPath.on(root || response.body, "$.data.attributes.#{a}").first
+    JsonPath.on(root || jsonapi_data, "$.attributes.#{a}").first
   end
 
   def jsonapi_rel(rel, root=nil)
-    JsonPath.on(root || response.body, "$.data.relationships.#{rel}").first
+    JsonPath.on(root || jsonapi_data, "$.relationships.#{rel}").first
   end
 
   def jsonapi_inc(type, id)
-    JsonPath.on(response.body, "$.included").first.find do |included|
-      data = included['data']
-      data && data['type'] == type && data['id'] == id
+    JsonPath.on(response.body, "$.included").first.find do |inc|
+      inc['type'] == type && inc['id'] == id
     end
   end
 
