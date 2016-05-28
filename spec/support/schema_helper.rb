@@ -1,5 +1,5 @@
 # encoding: utf-8
-module SampleSchemas
+module SchemaHelper
   def hr_schema
     {
       "name" => "HR",
@@ -25,5 +25,5 @@ module SampleSchemas
 end
 
 RSpec.configure do |c|
-  c.include SampleSchemas
+  c.include SchemaHelper
 end
