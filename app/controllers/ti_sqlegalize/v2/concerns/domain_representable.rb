@@ -6,7 +6,7 @@ module Concerns
 module DomainRepresentable
   extend ActiveSupport::Concern
 
-  def domain_jsonapi(domain, relationships: true)
+  def domain_to_jsonapi(domain, relationships: true)
     {
       data: {
         type: 'domain',

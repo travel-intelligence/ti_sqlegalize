@@ -14,10 +14,9 @@ module TiSqlegalize
         ].min
     end
 
-    before_action :validate_create, only: [:create]
-    before_action :validate_show, only: [:show]
-
     def create
+      validate_create!
+
       parser = TiSqlegalize.validator.call
       schemas = TiSqlegalize.schemas.call
 
@@ -35,6 +34,8 @@ module TiSqlegalize
     end
 
     def show
+      validate_show!
+
       query = Query.find @query_id
 
       render_show query
@@ -42,13 +43,13 @@ module TiSqlegalize
 
     private
 
-    def validate_show
+    def validate_show!
       permitted = params.permit(:id)
       @query_id = permitted[:id]
       raise InvalidParams unless @query_id
     end
 
-    def validate_create
+    def validate_create!
       permitted = params.require(:queries).permit(:sql)
       @query_sql = permitted[:sql]
       raise InvalidParams unless @query_sql

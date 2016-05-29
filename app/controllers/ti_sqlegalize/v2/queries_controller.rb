@@ -6,7 +6,7 @@ module V2
 
   private
 
-    def validate_create
+    def validate_create!
       permitted = params.require(:data).permit(:type, attributes: [ :sql ])
       raise InvalidParams unless permitted[:type] == 'query'
       @query_sql = permitted[:attributes][:sql]
@@ -17,7 +17,7 @@ module V2
       v2_query_url(query.id)
     end
 
-    def jsonapi(query)
+    def query_to_jsonapi(query)
       {
         data: {
           type: 'query',
@@ -49,12 +49,12 @@ module V2
 
     def render_create(query)
       response.headers['Location'] = href(query)
-      render_api json: jsonapi(query), status: 201
+      render_api json: query_to_jsonapi(query), status: 201
     end
 
     def render_show(query)
       if query
-        render_api json: jsonapi(query), status: 200
+        render_api json: query_to_jsonapi(query), status: 200
       else
         render_not_found
       end

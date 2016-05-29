@@ -66,6 +66,18 @@ describe TiSqlegalize::V2::RelationsController do
       expect(jsonapi_attr 'name', iata_city).to eq('IATA_CITY')
     end
 
+    it "complains on unknown domain" do
+      get_api :index_by_domain, domain_id: "not_a_domain"
+      expect(response.status).to eq(404)
+      expect(jsonapi_error).to eq("not found")
+    end
+
+    it "complains on invalid domain parameter" do
+      get_api :index_by_domain, domain_id: [1,2,"not_an_id"]
+      expect(response.status).to eq(400)
+      expect(jsonapi_error).to eq("invalid parameters")
+    end
+
     it "fetches relations for a domain" do
       pending("Lookup of relations by domain not implemented")
       domain = Fabricate(:domain)
@@ -74,6 +86,18 @@ describe TiSqlegalize::V2::RelationsController do
       expect(response.status).to eq(200)
       expect(jsonapi_root).to reside_at(v2_domain_relations_url(domain.id))
       expect(jsonapi_data).not_to be_empty
+    end
+
+    it "complains on unknown schema" do
+      get_api :index_by_schema, schema_id: "not_a_schema"
+      expect(response.status).to eq(404)
+      expect(jsonapi_error).to eq("not found")
+    end
+
+    it "complains on invalid schema parameter" do
+      get_api :index_by_schema, schema_id: [1,2,"not_an_id"]
+      expect(response.status).to eq(400)
+      expect(jsonapi_error).to eq("invalid parameters")
     end
 
     it "fetches relations for a schema" do

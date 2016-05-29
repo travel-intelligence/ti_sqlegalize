@@ -35,7 +35,11 @@ module V2
     def show_by_relation
       raise InvalidParams unless @relation_id
 
-      table = Table.find @relation_id
+      table = begin
+        Table.find @relation_id
+      rescue Table::UnknownTable
+        nil
+      end
 
       if table
         render_api json: table_to_jsonapi(table), status: 200

@@ -74,6 +74,18 @@ describe TiSqlegalize::V2::BodiesController do
         sign_in user
       end
 
+      it "complains on unknown resource" do
+        get_api :show_by_relation, relation_id: "not_a_relation"
+        expect(response.status).to eq(404)
+        expect(jsonapi_error).to eq("not found")
+      end
+
+      it "complains on invalid parameter" do
+        get_api :show_by_relation, relation_id: [1,2,"not_an_id"]
+        expect(response.status).to eq(400)
+        expect(jsonapi_error).to eq("invalid parameters")
+      end
+
       it "fetches a relation body" do
         pending("Body of non-query relation not implemented")
         get_api :show_by_relation, relation_id: table.id, q_offset: 0, q_limit: 10

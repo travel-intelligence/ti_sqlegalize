@@ -6,7 +6,13 @@ module V2
     ensure_signed_in
 
     def show
-      rep = {
+      render_api json: entry_to_jsonapi, status: 200
+    end
+
+    private
+
+    def entry_to_jsonapi
+      {
         data: {
           type: 'entry',
           id: '1',
@@ -27,7 +33,6 @@ module V2
           }
         }
       }
-      render_api json: rep, status: 200
     end
   end
 

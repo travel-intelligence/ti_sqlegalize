@@ -4,13 +4,13 @@ require 'ti_rails_auth/controller'
 
 module TiSqlegalize
 
-  class InvalidParams < StandardError
-  end
-
   class ApplicationController < ActionController::API
 
     include ActionController::MimeResponds
     include TiRailsAuth::Controller
+
+    class InvalidParams < StandardError
+    end
 
     rescue_from InvalidParams, with: :render_invalid_params
     rescue_from ActionController::ParameterMissing, with: :render_invalid_params

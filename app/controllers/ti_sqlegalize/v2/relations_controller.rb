@@ -80,7 +80,7 @@ module V2
 
       included = query.schema.map { |_, type| type }.uniq.map do |type|
         domain = Domain.find(type)
-        domain_jsonapi(domain, relationships: false)[:data]
+        domain_to_jsonapi(domain, relationships: false)[:data]
       end
 
       {
