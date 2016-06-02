@@ -56,9 +56,9 @@ describe TiSqlegalize::V2::SchemasController do
     it "represents a collection of schemas" do
       get_api :index
       expect(response.status).to eq(200)
-      expect(jsonapi_data.size).to eq(1)
+      expect(jsonapi_data.size).to eq(2)
 
-      s = jsonapi_data.first
+      s = jsonapi_data.find { |d| d['id'] == schema.id }
       expect(jsonapi_type s).to eq('schema')
       expect(jsonapi_id s).to eq(schema.id)
       expect(s).to \

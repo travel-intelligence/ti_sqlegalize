@@ -11,9 +11,23 @@ module TiSqlegalize
 
       def message
         {
-          "validation" => {
-            "sql" => @sql,
-            "schemas" => @schemas
+          validation: {
+            sql: @sql,
+            schemas: @schemas.map do |s|
+              {
+                name: s.name,
+                tables: s.tables.map do |t|
+                  {
+                    name: t.name,
+                    columns: t.columns.map do |c|
+                      {
+                        name: c.name, type: c.domain
+                      }
+                    end
+                  }
+                end
+              }
+            end
           }
         }.to_json
       end

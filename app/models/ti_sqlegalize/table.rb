@@ -8,12 +8,13 @@ module TiSqlegalize
     attr_accessor :name, :columns
     attr_reader :id
 
+    validates :name, presence: true
+
     class UnknownTable < StandardError
     end
 
     def self.find(id)
-      schemas = TiSqlegalize.schemas.call
-      table = schemas.map { |_,s| s.tables.find { |t| t.id == id } }.find { |t| t }
+      table = TiSqlegalize.schemas.find_table id
       raise UnknownTable.new(id) unless table
       table
     end
@@ -21,6 +22,7 @@ module TiSqlegalize
     def initialize(attributes={})
       super
       @id = SecureRandom.uuid
+      @columns ||= []
     end
   end
 end

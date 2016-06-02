@@ -19,8 +19,8 @@ describe TiSqlegalize::Schema do
 
   it "fetches all schemas" do
     schemas = TiSqlegalize::Schema.all
-    expect(schemas.size).to eq(1)
-    expect(schemas.first).to eq(schema)
+    expect(schemas.size).to eq(2)
+    expect(schemas.find { |s| s.id == schema.id }).to eq(schema)
   end
 
   it "contains tables" do

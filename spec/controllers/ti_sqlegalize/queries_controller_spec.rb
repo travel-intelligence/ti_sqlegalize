@@ -11,10 +11,10 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
   let!(:validator) { TiSqlegalize::SQLiterateValidator.new }
 
   before(:each) do
+    mock_domains
+    mock_schemas
     allow(TiSqlegalize).to \
       receive(:validator).and_return(-> { validator })
-    allow(TiSqlegalize).to \
-      receive(:schemas).and_return(-> { [hr_schema] })
   end
 
   let!(:queue) { Resque.queue_from_class(TiSqlegalize::Query) }

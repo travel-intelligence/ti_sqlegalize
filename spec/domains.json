@@ -1,0 +1,5 @@
+{
+  "domains": [
+    { "name": "IATA_CITY", "primitive": "VARCHAR" }
+  ]
+}

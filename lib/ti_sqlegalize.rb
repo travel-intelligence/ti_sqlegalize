@@ -30,7 +30,7 @@ module TiSqlegalize
 
   def schemas
     return @schemas if @schemas
-    self.schemas = -> { {} }
+    self.schemas = SchemaDirectory.new
   end
 
   def domains=(d)
@@ -39,6 +39,6 @@ module TiSqlegalize
 
   def domains
     return @domains if @domains
-    self.domains = -> { {} }
+    self.domains = DomainDirectory.new
   end
 end

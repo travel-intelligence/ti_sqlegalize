@@ -4,11 +4,13 @@ require 'ti_sqlegalize/calcite_validator'
 
 RSpec.describe TiSqlegalize::CalciteValidator do
 
+  before(:each) { mock_schemas }
+
   let(:simple_sql) { "select * from hr.emps" }
 
   it "formats validation requests" do
-
-    req = TiSqlegalize::CalciteValidator::ValidationRequest.new(simple_sql, [hr_schema])
+    schemas = [TiSqlegalize.schemas['HR']]
+    req = TiSqlegalize::CalciteValidator::ValidationRequest.new(simple_sql, schemas)
 
     expect_json(req.message, [
       ['$.validation.sql', eq(simple_sql)],

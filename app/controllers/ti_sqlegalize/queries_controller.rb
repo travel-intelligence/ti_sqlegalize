@@ -18,7 +18,7 @@ module TiSqlegalize
       validate_create!
 
       parser = TiSqlegalize.validator.call
-      schemas = TiSqlegalize.schemas.call
+      schemas = TiSqlegalize.schemas.all
 
       validation = parser.parse @query_sql, schemas
 

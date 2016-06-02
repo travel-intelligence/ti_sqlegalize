@@ -8,19 +8,24 @@ module TiSqlegalize
     attr_accessor :name, :description, :tables
     alias_attribute :id, :name
 
+    validates :name, presence: true
+
     class UnknownSchema < StandardError
     end
 
     def self.find(id)
-      schemas = TiSqlegalize.schemas.call
-      schema = schemas[id]
+      schema = TiSqlegalize.schemas[id]
       raise UnknownSchema.new(id) unless schema
       schema
     end
 
     def self.all
-      schemas = TiSqlegalize.schemas.call
-      schemas.values
+      TiSqlegalize.schemas.all
+    end
+
+    def initialize(attributes={})
+      super
+      @tables ||= []
     end
   end
 end
