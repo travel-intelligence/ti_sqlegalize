@@ -22,7 +22,11 @@ module TiSqlegalize
       sd = json['schemas'].flat_map do |schema|
              tables = (schema['tables'] || []).flat_map do |table|
                         columns = (table['columns'] || []).flat_map do |column|
-                                    c = TiSqlegalize::Column.new(column)
+                                    domain = column['domain']
+                                    d = TiSqlegalize::Domain.find(domain)
+                                    c = TiSqlegalize::Column.new(
+                                          name: column['name'], domain: d
+                                        )
                                     c.valid? ? [c] : []
                                   end
                         t = TiSqlegalize::Table.new(table.merge({ columns: columns}))

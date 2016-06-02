@@ -3,6 +3,8 @@ require 'rails_helper'
 
 describe TiSqlegalize::SchemaDirectory do
 
+  before(:each) { mock_domains }
+
   let(:directory) do
     TiSqlegalize::SchemaDirectory.load(
       File.join(Rails.root, '..', 'schemas.json')
@@ -26,7 +28,8 @@ describe TiSqlegalize::SchemaDirectory do
 
     column = table.columns.first
     expect(column.name).to eq('BOARD_CITY')
-    expect(column.domain).to eq('IATA_CITY')
+    expect(column.domain.name).to eq('IATA_CITY')
+    expect(column.domain.primitive).to eq('VARCHAR')
   end
 
   it "lookup tables by id" do

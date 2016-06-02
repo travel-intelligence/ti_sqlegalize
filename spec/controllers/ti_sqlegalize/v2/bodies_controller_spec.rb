@@ -62,7 +62,10 @@ describe TiSqlegalize::V2::BodiesController do
 
   context "on a relation" do
 
-    before(:each) { mock_schemas }
+    before(:each) do
+      mock_domains
+      mock_schemas
+    end
 
     let!(:table) { Fabricate(:table) }
 

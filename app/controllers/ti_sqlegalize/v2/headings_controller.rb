@@ -50,7 +50,7 @@ module V2
       end
 
       column = table && table.columns.find { |c| c.name == @attr_id }
-      domain = column && Domain.find(column.domain)
+      domain = column && column.domain
 
       if domain
         render_api json: domain_to_jsonapi(domain), status: 200

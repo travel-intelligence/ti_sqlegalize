@@ -4,7 +4,10 @@ require 'ti_sqlegalize/calcite_validator'
 
 RSpec.describe TiSqlegalize::CalciteValidator do
 
-  before(:each) { mock_schemas }
+  before(:each) do
+    mock_domains
+    mock_schemas
+  end
 
   let(:simple_sql) { "select * from hr.emps" }
 
@@ -15,7 +18,9 @@ RSpec.describe TiSqlegalize::CalciteValidator do
     expect_json(req.message, [
       ['$.validation.sql', eq(simple_sql)],
       ['$.validation.schemas[0].name', eq("HR")],
-      ['$.validation.schemas[0].tables[0].name', eq("EMPS")]
+      ['$.validation.schemas[0].tables[0].name', eq("EMPS")],
+      ['$.validation.schemas[0].tables[0].columns[0].name', eq("EMPID")],
+      ['$.validation.schemas[0].tables[0].columns[0].type', eq("INTEGER")]
     ])
   end
 

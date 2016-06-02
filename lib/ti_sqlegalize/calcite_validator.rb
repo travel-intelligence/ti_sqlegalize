@@ -21,7 +21,7 @@ module TiSqlegalize
                     name: t.name,
                     columns: t.columns.map do |c|
                       {
-                        name: c.name, type: c.domain
+                        name: c.name, type: c.domain.primitive
                       }
                     end
                   }

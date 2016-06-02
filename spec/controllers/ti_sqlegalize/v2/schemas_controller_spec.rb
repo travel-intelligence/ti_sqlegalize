@@ -4,7 +4,10 @@ require 'rails_helper'
 
 describe TiSqlegalize::V2::SchemasController do
 
-  before(:each) { mock_schemas }
+  before(:each) do
+    mock_domains
+    mock_schemas
+  end
 
   let!(:schema) { Fabricate(:schema) }
 

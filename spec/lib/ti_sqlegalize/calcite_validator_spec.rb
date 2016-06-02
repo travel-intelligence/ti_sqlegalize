@@ -5,7 +5,10 @@ require 'ti_sqlegalize/zmq_socket'
 
 RSpec.describe TiSqlegalize::CalciteValidator, calcite: true do
 
-  before(:each) { mock_schemas }
+  before(:each) do
+    mock_domains
+    mock_schemas
+  end
 
   let(:simple_sql) { "select * from hr.emps" }
 
