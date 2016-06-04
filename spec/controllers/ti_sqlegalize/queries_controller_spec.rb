@@ -49,11 +49,16 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
 
     context "with a query engine" do
 
+      let!(:rows) { [['a', 10, 2.4]] }
+
+      let!(:schema) do
+        [['x', 'VARCHAR'],
+         ['y', 'INTEGER'],
+         ['z', 'FLOAT']]
+      end
+
       before(:each) do
-        @cursor = [['a','b','c']]
-        @cursor.define_singleton_method(:open?) { true }
-        @cursor.define_singleton_method(:close) {}
-        @cursor.define_singleton_method(:schema) { ['x','y','z'] }
+        @cursor = mock_cursor schema, rows
         @database = double()
         allow(@database).to receive(:execute).and_return(@cursor)
         allow(TiSqlegalize).to receive(:database).and_return(-> { @database })
@@ -79,10 +84,10 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
         get_api :show, id: query_id, offset: 0, limit: 100
         expect(response.status).to eq(200)
         expect(first_json_at '$.queries.status').to eq('finished')
-        expect(first_json_at '$.queries.rows').to eq([['a','b','c']])
+        expect(first_json_at '$.queries.rows').to eq(rows)
         expect(first_json_at '$.queries.quota').to eq(100_000)
-        expect(first_json_at '$.queries.count').to eq(@cursor.length)
-        expect(first_json_at '$.queries.schema').to eq(['x','y','z'])
+        expect(first_json_at '$.queries.count').to eq(rows.length)
+        expect(first_json_at '$.queries.schema').to eq(schema)
       end
     end
 

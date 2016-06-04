@@ -3,6 +3,7 @@ module TiSqlegalize
   class Query
     @queue = :query
 
+    META_REVISION = 1
     DEFAULT_QUOTA = 100_000
     DEFAULT_TTL = 3600
     CURSOR_BATCH = 1024
@@ -35,12 +36,12 @@ module TiSqlegalize
 
     def meta
       {
-        status: status,
-        statement: statement,
-        count: count,
-        quota: quota,
-        schema: schema,
-        message: message
+        status: status.to_s,
+        statement: statement.to_s,
+        count: count.to_i,
+        quota: quota.to_i,
+        schema: schema.map { |c| [c.name, c.domain.name] },
+        message: message.to_s
       }
     end
 
@@ -97,7 +98,10 @@ module TiSqlegalize
         save!
       else
         self.status = :running
-        self.schema = cursor.schema
+        self.schema = cursor.schema.map do |name, type|
+          domain = Domain.find(type)
+          Column.new(name: name, domain: domain)
+        end
         save!
 
         fetch cursor
@@ -131,18 +135,20 @@ module TiSqlegalize
         query.id = id
         query.status = meta['status'].to_sym
         query.count = meta['count']
-        query.schema = meta['schema']
+        query.schema = meta['schema'].map do |name, type|
+                         Column.new(name: name, domain: Domain.find(type))
+                       end
         query.message = meta['message']
         query
       end
     end
 
     def self.main_key(id)
-      "ti_sqlegalize:query:#{id}" if id
+      "ti_sqlegalize:query:#{META_REVISION}:#{id}" if id
     end
 
     def self.meta_key(id)
-      "ti_sqlegalize:query:#{id}:meta" if id
+      "ti_sqlegalize:query:#{META_REVISION}:#{id}:meta" if id
     end
 
     def self.perform(id)

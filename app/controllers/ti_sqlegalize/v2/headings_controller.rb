@@ -23,9 +23,8 @@ module V2
       if query
         if query.status == :finished
 
-          _, attr_type = query.schema.find { |name,_| name == @attr_id }
-
-          domain = attr_type && Domain.find(attr_type)
+          column = query.schema.find { |c| c.name == @attr_id }
+          domain = column && column.domain
 
           if domain
             render_api json: domain_to_jsonapi(domain), status: 200

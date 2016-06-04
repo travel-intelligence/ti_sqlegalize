@@ -3,6 +3,10 @@ require 'rails_helper'
 
 describe TiSqlegalize::V2::BodiesController do
 
+  before(:each) do
+    mock_domains
+  end
+
   context "on a query" do
 
     let!(:query) { Fabricate(:finished_query) }
@@ -63,7 +67,6 @@ describe TiSqlegalize::V2::BodiesController do
   context "on a relation" do
 
     before(:each) do
-      mock_domains
       mock_schemas
     end
 

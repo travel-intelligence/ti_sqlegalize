@@ -66,20 +66,20 @@ module V2
   private
 
     def query_to_jsonapi(query)
-      heading = query.schema.map do |name, type|
-        [ "heading_#{name}", {
+      heading = query.schema.map do |column|
+        [ "heading_#{column.name}", {
           links: {
-            related: v2_query_result_heading_url(query.id, name)
+            related: v2_query_result_heading_url(query.id, column.name)
           },
           data: {
             type: 'domain',
-            id: type
+            id: column.domain.id
           }
         }]
       end
 
-      included = query.schema.map { |_, type| type }.uniq.map do |type|
-        domain = Domain.find(type)
+      included = query.schema.map { |c| c.domain.id }.uniq.map do |id|
+        domain = Domain.find(id)
         domain_to_jsonapi(domain, relationships: false)[:data]
       end
 
@@ -89,7 +89,7 @@ module V2
           id: query.id,
           attributes: {
             sql: query.statement,
-            heading: query.schema.map { |f| f.first }
+            heading: query.schema.map { |column| column.name }
           },
           relationships: {
             body: {

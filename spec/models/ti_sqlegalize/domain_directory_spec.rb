@@ -10,7 +10,7 @@ describe TiSqlegalize::DomainDirectory do
   end
 
   it "loads domains" do
-    expect(directory.size).to eq(3)
+    expect(directory.size).to eq(4)
   end
 
   it "lookup domains" do

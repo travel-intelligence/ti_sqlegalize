@@ -3,6 +3,11 @@ require 'rails_helper'
 
 describe TiSqlegalize::V2::RelationsController do
 
+  before(:each) do
+    mock_domains
+    mock_schemas
+  end
+
   let!(:query) { Fabricate(:finished_query) }
 
   context "without and authenticated user" do
@@ -19,8 +24,6 @@ describe TiSqlegalize::V2::RelationsController do
     let(:user) { Fabricate(:user) }
 
     before(:each) do
-      mock_domains
-      mock_schemas
       sign_in user
     end
 

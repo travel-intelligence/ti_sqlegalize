@@ -3,7 +3,10 @@ require 'rails_helper'
 
 RSpec.describe TiSqlegalize::Query, :type => :model do
 
-  before(:each) { Resque.redis = MockRedis.new }
+  before(:each) do
+    Resque.redis = MockRedis.new
+    mock_domains
+  end
 
   let!(:queue) { Resque.queue_from_class(TiSqlegalize::Query) }
 
@@ -11,20 +14,18 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
 
   let!(:query) { TiSqlegalize::Query.new('select 1', quota: 100, ttl: ttl) }
 
-  let!(:schema) { ['x','y','z'] }
+  let!(:row) { ['a', 10, 2.4] }
 
-  let!(:row) { ['a','b','c'] }
+  let!(:schema) do
+    [['x', 'VARCHAR'],
+     ['y', 'INTEGER'],
+     ['z', 'FLOAT']]
+  end
 
   let!(:rows) { [row] }
 
   let!(:cursor) do
-    c = rows.dup
-    c.define_singleton_method(:close) {}
-    c.define_singleton_method(:open?) { true }
-    # Ruby VM crash when referring to schema in singleton method definition
-    s = schema
-    c.define_singleton_method(:schema) { s }
-    c
+    mock_cursor schema, rows
   end
 
   it 'creates new queries' do
@@ -58,6 +59,22 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
     expect(q[0, 10]).to eq(rows)
   end
 
+  it 'updates schema' do
+    query.create!
+    query.schema = [
+      TiSqlegalize::Column.new(
+        name: 'a',
+        domain: TiSqlegalize::Domain.find('VARCHAR')
+      )
+    ]
+    query.save!
+
+    q = TiSqlegalize::Query.find(query.id)
+    expect(query.schema.size).to eq(1)
+    expect(query.schema[0].name).to eq('a')
+    expect(query.schema[0].domain).to eq(TiSqlegalize::Domain.find('VARCHAR'))
+  end
+
   it 'performs statement' do
     query.create!
 
@@ -68,7 +85,13 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
     TiSqlegalize::Query.perform(query.id)
 
     expect(query[0, 10]).to eq([row])
-    expect(query.schema).to eq(schema)
+    expect(query.schema.size).to eq(3)
+    expect(query.schema[0].name).to eq('x')
+    expect(query.schema[0].domain).to eq(TiSqlegalize::Domain.find('VARCHAR'))
+    expect(query.schema[1].name).to eq('y')
+    expect(query.schema[1].domain).to eq(TiSqlegalize::Domain.find('INTEGER'))
+    expect(query.schema[2].name).to eq('z')
+    expect(query.schema[2].domain).to eq(TiSqlegalize::Domain.find('FLOAT'))
   end
 
   context 'with quota' do

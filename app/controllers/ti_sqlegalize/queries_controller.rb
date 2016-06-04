@@ -80,7 +80,7 @@ module TiSqlegalize
             limit: @q_limit,
             quota: query.quota,
             count: query.count,
-            schema: query.schema,
+            schema: query.schema.map { |c| [c.name, c.domain.primitive] },
             rows: query[@q_offset, @q_limit]
           }
         }

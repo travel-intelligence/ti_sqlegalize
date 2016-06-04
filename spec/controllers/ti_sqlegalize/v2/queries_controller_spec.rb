@@ -3,6 +3,10 @@ require 'rails_helper'
 
 describe TiSqlegalize::V2::QueriesController do
 
+  before(:each) do
+    mock_domains
+  end
+
   let(:sql) { "select a from t1, (select b,c from d.t) t2" }
   let(:rep) do
     {
