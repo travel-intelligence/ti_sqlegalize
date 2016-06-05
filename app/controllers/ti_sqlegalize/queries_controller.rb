@@ -80,7 +80,10 @@ module TiSqlegalize
             limit: @q_limit,
             quota: query.quota,
             count: query.count,
-            schema: query.schema.map { |c| [c.name, c.domain.primitive] },
+            schema: query.schema.map do |c|
+              attr_type = Legacy.as_impala_type c.domain
+              [c.name, attr_type]
+            end,
             rows: query[@q_offset, @q_limit]
           }
         }
@@ -97,6 +100,31 @@ module TiSqlegalize
         }]
       }
       render_api json: rep, status: 400
+    end
+
+    class Legacy
+      TYPES_MAP = {
+        "BOOLEAN" => "boolean",
+        "TINYINT" => "tinyint",
+        "SMALLINT" => "smallint",
+        "INTEGER" => "int",
+        "INT" => "int",
+        "BIGINT" => "bigint",
+        "DECIMAL" => "decimal",
+        "NUMERIC" => "decimal",
+        "REAL" => "float",
+        "FLOAT" => "float",
+        "DOUBLE" => "double",
+        "CHAR" => "string",
+        "VARCHAR" => "string",
+        "TIMESTAMP" => "timestamp"
+      }
+
+      def self.as_impala_type(domain)
+        type = TYPES_MAP[domain.primitive]
+        fail "Unknown type #{domain.primitive}" unless type
+        type
+      end
     end
   end
 end

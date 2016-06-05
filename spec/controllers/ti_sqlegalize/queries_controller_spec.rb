@@ -87,7 +87,11 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
         expect(first_json_at '$.queries.rows').to eq(rows)
         expect(first_json_at '$.queries.quota').to eq(100_000)
         expect(first_json_at '$.queries.count').to eq(rows.length)
-        expect(first_json_at '$.queries.schema').to eq(schema)
+        expect(first_json_at '$.queries.schema').to eq([
+            ['x', 'string'],
+            ['y', 'int'],
+            ['z', 'float']
+          ])
       end
     end
 
