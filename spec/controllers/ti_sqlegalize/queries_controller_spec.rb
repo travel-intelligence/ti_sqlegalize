@@ -13,8 +13,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
   before(:each) do
     mock_domains
     mock_schemas
-    allow(TiSqlegalize).to \
-      receive(:validator).and_return(-> { validator })
+    mock_validator validator
   end
 
   let!(:queue) { Resque.queue_from_class(TiSqlegalize::Query) }
@@ -61,7 +60,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
         @cursor = mock_cursor schema, rows
         @database = double()
         allow(@database).to receive(:execute).and_return(@cursor)
-        allow(TiSqlegalize).to receive(:database).and_return(-> { @database })
+        allow(TiSqlegalize::Config).to receive(:database).and_return(@database)
       end
 
       it "enqueue queries for processing" do
@@ -102,7 +101,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
       before(:each) do
         @database = double()
         allow(@database).to receive(:execute) { fail database_error }
-        allow(TiSqlegalize).to receive(:database).and_return(-> { @database })
+        allow(TiSqlegalize::Config).to receive(:database).and_return(@database)
       end
 
       it "provides feedback with error message" do

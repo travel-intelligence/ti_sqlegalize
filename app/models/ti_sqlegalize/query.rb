@@ -81,7 +81,7 @@ module TiSqlegalize
     end
 
     def execute(statement)
-      @db ||= TiSqlegalize.database.call
+      @db ||= TiSqlegalize::Config.database
       @db.execute statement
     end
 

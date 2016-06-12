@@ -15,8 +15,7 @@ module TiSqlegalize
     end
 
     def self.find(id)
-      directory = TiSqlegalize.domains
-      domain = directory[id]
+      domain = TiSqlegalize::Config.domains[id]
       raise UnknownDomain.new(id) unless domain
       domain
     end

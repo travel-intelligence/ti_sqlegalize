@@ -9,16 +9,15 @@ Gem::Specification.new do |s|
   s.version     = TiSqlegalize::VERSION
   s.authors     = ["Emmanuel Bastien"]
   s.email       = ["os@ebastien.name"]
-  s.homepage    = "https://github.com/opentraveldata"
-  s.summary     = "RESTful SQL adapter"
-  s.description = "TiSqlegalize provides a RESTful interface on top of a SQL engine."
+  s.homepage    = "https://github.com/ebastien"
+  s.summary     = "Implementation of RelJSON as a Rails Engine"
+  s.description = "TiSqlegalize is a reference implementation of the RelJSON specification."
 
   s.files = Dir["{app,config,db,lib}/**/*", "Rakefile", "README.md"]
 
   s.add_dependency "rails", "~> 4.2.0"
   s.add_dependency "rails-api", "~> 0.3.1"
   s.add_dependency "sqliterate"
-  s.add_dependency "ti_rails_auth"
   s.add_dependency "resque"
   s.add_dependency "cztop"
 

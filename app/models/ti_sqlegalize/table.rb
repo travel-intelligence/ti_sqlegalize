@@ -14,7 +14,7 @@ module TiSqlegalize
     end
 
     def self.find(id)
-      table = TiSqlegalize.schemas.find_table id
+      table = TiSqlegalize::Config.schemas.find_table id
       raise UnknownTable.new(id) unless table
       table
     end

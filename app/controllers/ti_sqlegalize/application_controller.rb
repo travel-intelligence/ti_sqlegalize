@@ -1,13 +1,11 @@
 # encoding: utf-8
 require 'rails-api/action_controller/api'
-require 'ti_rails_auth/controller'
 
 module TiSqlegalize
 
   class ApplicationController < ActionController::API
 
     include ActionController::MimeResponds
-    include TiRailsAuth::Controller
 
     class InvalidParams < StandardError
     end
@@ -17,6 +15,14 @@ module TiSqlegalize
     rescue_from Exception, with: :render_exception if Rails.env.production?
 
     protected
+
+    def self.ensure_signed_in
+      include Config.auth_mixin
+
+      before_filter do
+        render_invalid_credentials unless authenticate
+      end
+    end
 
     def render_error(status, code=nil)
       rep = {
@@ -45,6 +51,10 @@ module TiSqlegalize
 
     def render_internal_error
       render_error 500, "internal error"
+    end
+
+    def render_invalid_credentials
+      render_error 401, "invalid credentials"
     end
 
     def render_exception(exception)

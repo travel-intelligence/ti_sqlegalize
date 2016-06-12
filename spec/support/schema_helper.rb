@@ -5,8 +5,7 @@ module SchemaHelper
                   File.join(Rails.root, '..', 'domains.json')
                 )
 
-    allow(TiSqlegalize).to \
-      receive(:domains).and_return(directory)
+    allow(TiSqlegalize::Config).to receive(:domains).and_return(directory)
   end
 
   def mock_schemas
@@ -14,8 +13,13 @@ module SchemaHelper
                   File.join(Rails.root, '..', 'schemas.json')
                 )
 
-    allow(TiSqlegalize).to \
-      receive(:schemas).and_return(directory)
+    allow(TiSqlegalize::Config).to receive(:schemas).and_return(directory)
+  end
+
+  def mock_validator(validator=nil)
+    validator ||= TiSqlegalize::SQLiterateValidator.new
+
+    allow(TiSqlegalize::Config).to receive(:validator).and_return(validator)
   end
 
   def mock_cursor(schema, rows)
