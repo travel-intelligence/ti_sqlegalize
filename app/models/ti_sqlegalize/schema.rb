@@ -14,13 +14,13 @@ module TiSqlegalize
     end
 
     def self.find(id)
-      schema = TiSqlegalize.schemas[id]
+      schema = TiSqlegalize::Config.schemas[id]
       raise UnknownSchema.new(id) unless schema
       schema
     end
 
     def self.all
-      TiSqlegalize.schemas.all
+      TiSqlegalize::Config.schemas.all
     end
 
     def initialize(attributes={})

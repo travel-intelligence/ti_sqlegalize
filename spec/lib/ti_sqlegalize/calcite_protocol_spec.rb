@@ -12,7 +12,7 @@ RSpec.describe TiSqlegalize::CalciteValidator do
   let(:simple_sql) { "select * from hr.emps" }
 
   it "formats validation requests" do
-    schemas = [TiSqlegalize.schemas['HR']]
+    schemas = [ TiSqlegalize::Schema.find('HR') ]
     req = TiSqlegalize::CalciteValidator::ValidationRequest.new(simple_sql, schemas)
 
     expect_json(req.message, [

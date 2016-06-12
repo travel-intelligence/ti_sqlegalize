@@ -19,7 +19,7 @@ RSpec.describe TiSqlegalize::CalciteValidator, calcite: true do
     rep = with_a_calcite_server_at(endpoint) do
       socket = TiSqlegalize::ZMQSocket.new(endpoint)
       validator = TiSqlegalize::CalciteValidator.new(socket)
-      schemas = [TiSqlegalize.schemas['HR']]
+      schemas = [ TiSqlegalize::Schema.find('HR') ]
       validator.parse(simple_sql, schemas)
     end
 

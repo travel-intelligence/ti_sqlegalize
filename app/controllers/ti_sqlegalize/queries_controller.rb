@@ -10,15 +10,15 @@ module TiSqlegalize
       @q_offset = [params.fetch(:offset, 0).to_i, 0].max
       @q_limit = [
           [params.fetch(:limit, 1).to_i, 1].max,
-          TiSqlegalize::Config.max_body_limit
+          Config.max_body_limit
         ].min
     end
 
     def create
       validate_create!
 
-      parser = TiSqlegalize.validator.call
-      schemas = TiSqlegalize.schemas.all
+      parser = Config.validator
+      schemas = Schema.all
 
       validation = parser.parse @query_sql, schemas
 

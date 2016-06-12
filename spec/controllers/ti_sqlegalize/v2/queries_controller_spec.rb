@@ -5,6 +5,8 @@ describe TiSqlegalize::V2::QueriesController do
 
   before(:each) do
     mock_domains
+    mock_schemas
+    mock_validator
   end
 
   let(:sql) { "select a from t1, (select b,c from d.t) t2" }
