@@ -1,8 +1,10 @@
 # encoding: utf-8
 TiSqlegalize::Engine.routes.draw do
-  get '/profile', to: redirect('/profile.txt')
 
-  resources :queries, only: [:create, :show]
+  scope 'v1' do
+    get '/profile', to: redirect('/profile.txt')
+    resources :queries, only: [:create, :show]
+  end
 
   namespace 'v2' do
     resource :entry, only: [:show]
