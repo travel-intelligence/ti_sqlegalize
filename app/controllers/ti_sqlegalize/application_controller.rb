@@ -10,9 +10,9 @@ module TiSqlegalize
     class InvalidParams < StandardError
     end
 
+    rescue_from Exception, with: :render_exception if Rails.env.production?
     rescue_from InvalidParams, with: :render_invalid_params
     rescue_from ActionController::ParameterMissing, with: :render_invalid_params
-    rescue_from Exception, with: :render_exception if Rails.env.production?
 
     protected
 
