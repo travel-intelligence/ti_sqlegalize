@@ -9,7 +9,8 @@ module V2
     ensure_signed_in
 
     before_action do
-      permitted = params.permit(:query_id, :domain_id, :schema_id)
+      permitted = params.permit(:id, :query_id, :domain_id, :schema_id)
+      @relation_id = permitted[:id]
       @query_id = permitted[:query_id]
       @domain_id = permitted[:domain_id]
       @schema_id = permitted[:schema_id]
@@ -63,6 +64,18 @@ module V2
       end
     end
 
+    def show
+      raise InvalidParams unless @relation_id
+
+      table = Table.find @relation_id
+
+      if table
+        render_api json: table_to_jsonapi(table), status: 200
+      else
+        render_not_found
+      end
+    end
+
   private
 
     def query_to_jsonapi(query)
@@ -111,8 +124,17 @@ module V2
         [ "heading_#{c.name}", {
           links: {
             related: v2_relation_heading_url(table.id, c.id)
+          },
+          data: {
+            type: 'domain',
+            id: c.domain.id
           }
         }]
+      end
+
+      included = table.columns.map { |c| c.domain.id }.uniq.map do |id|
+        domain = Domain.find(id)
+        domain_to_jsonapi(domain, relationships: false)[:data]
       end
 
       {
@@ -133,7 +155,8 @@ module V2
           links: {
             :self => v2_relation_url(table.id)
           }
-        }
+        },
+        included: included
       }
     end
 

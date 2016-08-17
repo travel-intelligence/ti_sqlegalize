@@ -126,5 +126,29 @@ describe TiSqlegalize::V2::RelationsController do
       expect(jsonapi_rel 'body', r).to \
         relate_to(v2_relation_body_url(table.id))
     end
+
+    it "fetches a relation by self URL" do
+      table = Fabricate(:table)
+
+      get_api :show, id: table.id
+      expect(response.status).to eq(200)
+      expect(jsonapi_type).to eq('relation')
+      expect(jsonapi_id).to eq(table.id)
+      expect(jsonapi_data).to reside_at(v2_relation_url(table.id))
+      expect(jsonapi_attr 'name').to eq(table.name)
+      expect(jsonapi_attr 'heading').to eq(['BOARD_CITY'])
+
+      expect(jsonapi_rel 'heading_BOARD_CITY').to \
+        relate_to(v2_relation_heading_url(table.id, 'BOARD_CITY'))
+
+      expect(jsonapi_rel 'heading_BOARD_CITY').to \
+        be_identified_by('domain' => 'IATA_CITY')
+
+      expect(jsonapi_rel 'body').to \
+        relate_to(v2_relation_body_url(table.id))
+
+      iata_city = jsonapi_inc 'domain', 'IATA_CITY'
+      expect(jsonapi_attr 'name', iata_city).to eq('IATA_CITY')
+    end
   end
 end
