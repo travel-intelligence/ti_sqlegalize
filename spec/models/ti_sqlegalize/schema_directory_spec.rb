@@ -32,12 +32,28 @@ describe TiSqlegalize::SchemaDirectory do
     expect(column.domain.primitive).to eq('VARCHAR')
   end
 
-  it "lookup tables by id" do
+  it "lookup a table by id" do
     table = directory['MARKET'].tables.first
     expect(directory.find_table(table.id)).to eq(table)
   end
 
+  it "lookup an unknown table by id" do
+    table = TiSqlegalize::Table.new
+    expect(directory.find_table(table.id)).to be_nil
+  end
+
   it "returns all schemas" do
     expect(directory.all.size).to eq(2)
+  end
+
+  it "lookup schema by table" do
+    schema = directory['MARKET']
+    table = schema.tables.first
+    expect(directory.find_table_schema(table.id)).to eq(schema)
+  end
+
+  it "lookup schema by unknown table" do
+    table = TiSqlegalize::Table.new
+    expect(directory.find_table_schema(table.id)).to be_nil
   end
 end

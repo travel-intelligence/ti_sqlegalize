@@ -71,5 +71,25 @@ describe TiSqlegalize::V2::SchemasController do
       expect(jsonapi_rel 'relations', s).to \
         relate_to(v2_schema_relations_url(schema.id))
     end
+
+    context "with a user without schema access" do
+
+      let(:user) { Fabricate(:user_hr) }
+
+      it "compains for unknown schema" do
+        get_api :show, id: schema.id
+        expect(response.status).to eq(404)
+        expect(jsonapi_error).to eq("not found")
+      end
+
+      it "filters non-readable schemas" do
+        get_api :index
+        expect(response.status).to eq(200)
+        expect(jsonapi_data.size).to eq(1)
+
+        s = jsonapi_data.find { |d| d['id'] == schema.id }
+        expect(s).to be_nil
+      end
+    end
   end
 end

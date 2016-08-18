@@ -140,7 +140,7 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
       TiSqlegalize::CalciteValidator.new(socket)
     end
 
-    let!(:user) { Fabricate(:user) }
+    let!(:user) { Fabricate(:user_hr) }
 
     before(:each) do
       sign_in user
@@ -168,6 +168,18 @@ RSpec.describe TiSqlegalize::QueriesController, :type => :controller do
       expect(response.status).to eq(400)
       expect(first_json_at '$.errors[0].detail').to \
         match(/Table 'NOT_A_DB.EMPS' not found/)
+    end
+
+    it "hides non-readable schemas" do
+      rep = { queries: { sql: "select * from MARKET.BOOKINGS_OND" } }
+
+      with_a_calcite_server_at(endpoint) do
+        post_api :create, rep
+      end
+
+      expect(response.status).to eq(400)
+      expect(first_json_at '$.errors[0].detail').to \
+        match(/Table 'MARKET.BOOKINGS_OND' not found/)
     end
   end
 end

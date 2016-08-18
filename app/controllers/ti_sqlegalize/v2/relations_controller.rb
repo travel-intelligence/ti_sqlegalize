@@ -57,7 +57,7 @@ module V2
         nil
       end
 
-      if schema
+      if schema && current_user.can_read_schema?(schema)
         render_api json: schema_tables_to_jsonapi(schema), status: 200
       else
         render_not_found
@@ -69,7 +69,7 @@ module V2
 
       table = Table.find @relation_id
 
-      if table
+      if table && current_user.can_read_schema?(table.schema)
         render_api json: table_to_jsonapi(table), status: 200
       else
         render_not_found

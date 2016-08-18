@@ -44,6 +44,13 @@ module TiSqlegalize
       @schemas ||= {}
     end
 
+    def find_table_schema(table_id)
+      _, schema = @schemas.find do |_,s|
+                    s.tables.find { |t| t.id == table_id }
+                  end
+      schema
+    end
+
     def find_table(id)
       @schemas.map do |_,s|
         s.tables.find { |t| t.id == id }

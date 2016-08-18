@@ -13,7 +13,11 @@ module V2
     def index
       schemas = Schema.all
 
-      render_api json: schemas_to_jsonapi(schemas), status: 200
+      readable_schemas = schemas.flat_map do |s|
+                           current_user.can_read_schema?(s) ? [s] : []
+                         end
+
+      render_api json: schemas_to_jsonapi(readable_schemas), status: 200
     end
 
     def show
@@ -25,7 +29,7 @@ module V2
         nil
       end
 
-      if schema
+      if schema && current_user.can_read_schema?(schema)
         render_api json: schema_to_jsonapi(schema), status: 200
       else
         render_not_found

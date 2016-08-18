@@ -21,7 +21,7 @@ describe TiSqlegalize::V2::RelationsController do
 
   context "with an authenticated user" do
 
-    let(:user) { Fabricate(:user) }
+    let(:user) { Fabricate(:user_market) }
 
     before(:each) do
       sign_in user
@@ -149,6 +149,27 @@ describe TiSqlegalize::V2::RelationsController do
 
       iata_city = jsonapi_inc 'domain', 'IATA_CITY'
       expect(jsonapi_attr 'name', iata_city).to eq('IATA_CITY')
+    end
+
+    context "with a user without schema access" do
+
+      let(:user) { Fabricate(:user_hr) }
+
+      it "compains for unknown schema" do
+        schema = Fabricate(:schema)
+
+        get_api :index_by_schema, schema_id: schema.id
+        expect(response.status).to eq(404)
+        expect(jsonapi_error).to eq("not found")
+      end
+
+      it "compains for unknown table" do
+        table = Fabricate(:table)
+
+        get_api :show, id: table.id
+        expect(response.status).to eq(404)
+        expect(jsonapi_error).to eq("not found")
+      end
     end
   end
 end

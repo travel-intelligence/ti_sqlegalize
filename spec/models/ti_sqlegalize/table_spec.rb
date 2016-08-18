@@ -24,4 +24,15 @@ describe TiSqlegalize::Table do
     columns = table.columns
     expect(columns.size).to eq(1)
   end
+
+  it "finds its current schema" do
+    schema = table.schema
+    expect(schema).to eq(Fabricate(:schema))
+  end
+
+  it "complains for orphan table" do
+    expect do
+      TiSqlegalize::Table.new.schema
+    end.to raise_error(TiSqlegalize::Table::UnknownTable)
+  end
 end

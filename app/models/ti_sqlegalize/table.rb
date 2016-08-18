@@ -24,5 +24,11 @@ module TiSqlegalize
       @id = SecureRandom.uuid
       @columns ||= []
     end
+
+    def schema
+      s = TiSqlegalize::Config.schemas.find_table_schema id
+      raise UnknownTable.new(id) unless s
+      s
+    end
   end
 end

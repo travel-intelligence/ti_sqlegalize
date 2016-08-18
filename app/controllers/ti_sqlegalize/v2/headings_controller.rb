@@ -48,7 +48,8 @@ module V2
         nil
       end
 
-      column = table && table.columns.find { |c| c.name == @attr_id }
+      column = table && current_user.can_read_schema?(table.schema) \
+                     && table.columns.find { |c| c.name == @attr_id }
       domain = column && column.domain
 
       if domain

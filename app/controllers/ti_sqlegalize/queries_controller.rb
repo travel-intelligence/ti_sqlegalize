@@ -20,7 +20,11 @@ module TiSqlegalize
       parser = Config.validator
       schemas = Schema.all
 
-      validation = parser.parse @query_sql, schemas
+      readable_schemas = schemas.flat_map do |s|
+                           current_user.can_read_schema?(s) ? [s] : []
+                         end
+
+      validation = parser.parse @query_sql, readable_schemas
 
       if validation.valid?
         query = Query.new validation.sql

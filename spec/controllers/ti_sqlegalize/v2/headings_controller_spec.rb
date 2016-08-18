@@ -114,6 +114,17 @@ describe TiSqlegalize::V2::HeadingsController do
         expect(jsonapi_rel 'relations').to \
           relate_to(v2_domain_relations_url('IATA_CITY'))
       end
+
+      context "with a user without schema access" do
+
+        let(:user) { Fabricate(:user_hr) }
+
+        it "compains for unknown relation" do
+          get_api :show_by_relation, relation_id: table.id, attr_id: 'BOARD_CITY'
+          expect(response.status).to eq(404)
+          expect(jsonapi_error).to eq("not found")
+        end
+      end
     end
   end
 end
