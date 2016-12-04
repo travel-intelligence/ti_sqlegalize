@@ -53,7 +53,16 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
 
   it 'appends rows' do
     query.create!
+
+    expect(query.count).to eq(0)
+
+    query << []
+
+    expect(query.count).to eq(0)
+
     query << rows
+
+    expect(query.count).to eq(rows.length)
 
     q = TiSqlegalize::Query.find(query.id)
     expect(q[0, 10]).to eq(rows)
@@ -130,14 +139,47 @@ RSpec.describe TiSqlegalize::Query, :type => :model do
     expect(q[0, 10]).to be_empty
   end
 
+  it 'catches empty result set' do
+    query.create!
+
+    empty_cursor = mock_cursor schema, []
+
+    expect(query).to \
+      receive(:execute).with(query.statement).and_return(empty_cursor)
+
+    query.run
+
+    q = TiSqlegalize::Query.find(query.id)
+    expect(q.status).to eq(:finished)
+    expect(q[0, 10]).to be_empty
+    expect(query.schema).to be_empty
+  end
+
   context 'with database errors' do
 
     let!(:database_error) { "Database error" }
 
-    it 'keeps error message and status with the query' do
+    it 'catches errors while executing the statement' do
       query.create!
 
       expect(query).to receive(:execute) { fail database_error }
+
+      query.run
+
+      q = TiSqlegalize::Query.find(query.id)
+      expect(q.status).to eq(:error)
+      expect(q.message).to eq(database_error)
+    end
+
+    it 'catches errors while fetching rows' do
+      query.create!
+
+      buggy_cursor = mock_cursor schema, rows
+
+      expect(buggy_cursor).to receive(:each_slice) { fail database_error }
+
+      expect(query).to \
+        receive(:execute).with(query.statement).and_return(buggy_cursor)
 
       query.run
 

@@ -28,6 +28,7 @@ module SchemaHelper
     allow(cursor).to receive(:open?).and_return(true)
     allow(cursor).to receive(:close)
     allow(cursor).to receive(:schema).and_return(schema)
+    allow(cursor).to receive(:has_more?).and_return(!rows.empty?)
     cursor
   end
 end

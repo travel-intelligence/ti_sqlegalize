@@ -58,7 +58,7 @@ module TiSqlegalize
 
     def <<(rows)
       k = self.class.main_key id
-      if k
+      if k && !rows.empty?
         self.count, _ = Resque.redis.multi do |r|
                           r.rpush(k, rows.map(&:to_json))
                           r.expire(k, @ttl)
@@ -92,22 +92,27 @@ module TiSqlegalize
     def run
       begin
         cursor = execute statement
+
+        if cursor.has_more?
+          self.status = :running
+          self.schema = cursor.schema.map do |name, type|
+            domain = Domain.find(type)
+            Column.new(name: name, domain: domain)
+          end
+          save!
+
+          fetch cursor
+        end
       rescue Exception => e
         self.status = :error
         self.message = e.message
         save!
       else
-        self.status = :running
-        self.schema = cursor.schema.map do |name, type|
-          domain = Domain.find(type)
-          Column.new(name: name, domain: domain)
-        end
-        save!
-
-        fetch cursor
-
         self.status = :finished
         save!
+        if cursor.respond_to?(:close) && cursor.respond_to?(:open?)
+          cursor.close if cursor.open?
+        end
       end
     end
 
@@ -120,9 +125,6 @@ module TiSqlegalize
                end
         self << rows
         break if count >= quota
-      end
-      if cursor.respond_to?(:close) && cursor.respond_to?(:open?)
-        cursor.close if cursor.open?
       end
     end
 
