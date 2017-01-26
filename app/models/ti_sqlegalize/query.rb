@@ -16,7 +16,7 @@ module TiSqlegalize
       @count = 0
       @ttl = ttl
       @schema = []
-      @message = ""
+      @message = ''
     end
 
     def create!
@@ -92,7 +92,6 @@ module TiSqlegalize
     def run
       begin
         cursor = execute statement
-
         if cursor.has_more?
           self.status = :running
           self.schema = cursor.schema.map do |name, type|
@@ -100,12 +99,12 @@ module TiSqlegalize
             Column.new(name: name, domain: domain)
           end
           save!
-
           fetch cursor
         end
-      rescue Exception => e
+      rescue
+        Rails.logger.error "Error while executing query #{statement}: #{$!}\n#{$!.backtrace.join("\n")}"
         self.status = :error
-        self.message = e.message
+        self.message = $!.message
         save!
       else
         self.status = :finished

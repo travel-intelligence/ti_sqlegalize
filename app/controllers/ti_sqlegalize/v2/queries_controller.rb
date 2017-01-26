@@ -18,16 +18,18 @@ module V2
     end
 
     def query_to_jsonapi(query)
+      query_attributes = {
+        sql: query.statement,
+        status: query.status
+      }
+      query_attributes[:message] = query.message unless query.message.empty?
       {
         data: {
           type: 'query',
           id: query.id,
-          attributes: {
-            sql: query.statement,
-            status: query.status
-          },
+          attributes: query_attributes,
           links: {
-            :self => href(query)
+            self: href(query)
           }
         }.merge(
           if query.status == :finished
