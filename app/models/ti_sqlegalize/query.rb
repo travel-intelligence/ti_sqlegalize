@@ -102,7 +102,7 @@ module TiSqlegalize
           fetch cursor
         end
       rescue
-        Rails.logger.error "Error while executing query #{statement}: #{$!}\n#{$!.backtrace.join("\n")}"
+        Rails.logger.error "Error while executing query #{statement}: #{$!} (#{$!.message})\n#{$!.backtrace.join("\n")}"
         self.status = :error
         self.message = $!.message
         save!
