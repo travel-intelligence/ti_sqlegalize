@@ -86,22 +86,29 @@ describe TiSqlegalize::V2::QueriesController do
       expect(jsonapi_rel 'result').to relate_to(v2_query_result_url(query.id))
     end
 
-    it 'fetches a query in error' do
-      query = Fabricate(
-        :created_query,
-        status: :error,
-        message: 'Query in error'
-      )
+    # List known database errors and the corresponding message we should log for each one of them
+    {
+      'ORDER BY without LIMIT currently not supported' => 'Must use LIMIT with ORDER BY'
+    }.each do |db_message, api_message|
 
-      get_api :show, id: query.id
-      expect(response.status).to eq(200)
-      expect(jsonapi_type).to eq('query')
-      expect(jsonapi_id).to eq(query.id)
-      expect(jsonapi_data).to reside_at(v2_query_url(query.id))
-      expect(jsonapi_attr 'status').to eq('error')
-      expect(jsonapi_attr 'message').to eq('Query in error')
-      expect(jsonapi_attr 'sql').to eq(query.statement)
-      expect(jsonapi_rel 'result').to be_nil
+      it "fetches a query in error and returns correct message for #{db_message}" do
+        query = Fabricate(
+          :created_query,
+          status: :error,
+          message: db_message
+        )
+
+        get_api :show, id: query.id
+        expect(response.status).to eq(200)
+        expect(jsonapi_type).to eq('query')
+        expect(jsonapi_id).to eq(query.id)
+        expect(jsonapi_data).to reside_at(v2_query_url(query.id))
+        expect(jsonapi_attr 'status').to eq('error')
+        expect(jsonapi_attr 'message').to eq(api_message)
+        expect(jsonapi_attr 'sql').to eq(query.statement)
+        expect(jsonapi_rel 'result').to be_nil
+      end
+
     end
 
   end

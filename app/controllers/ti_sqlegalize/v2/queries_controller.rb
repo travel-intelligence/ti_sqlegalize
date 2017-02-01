@@ -6,6 +6,11 @@ module V2
 
   private
 
+    # Register here all the DB error messages we know of, so that we can translate them into nice API messages.
+    DB_TO_API_MESSAGES = {
+      'ORDER BY without LIMIT currently not supported' => 'Must use LIMIT with ORDER BY'
+    }
+
     def validate_create!
       permitted = params.require(:data).permit(:type, attributes: [ :sql ])
       raise InvalidParams unless permitted[:type] == 'query'
@@ -22,8 +27,8 @@ module V2
         sql: query.statement,
         status: query.status
       }
-      query_attributes[:message] = query.message unless query.message.empty?
-      {
+      query_attributes[:message] = DB_TO_API_MESSAGES[query.message] if !query.message.empty? && DB_TO_API_MESSAGES.key?(query.message)
+      json = {
         data: {
           type: 'query',
           id: query.id,
@@ -31,22 +36,18 @@ module V2
           links: {
             self: href(query)
           }
-        }.merge(
-          if query.status == :finished
-            {
-              relationships: {
-                result: {
-                  links: {
-                    related: v2_query_result_url(query.id)
-                  }
-                }
-              }
-            }
-          else
-            {}
-          end
-        )
+        }
       }
+      json[:data].merge!(
+        relationships: {
+          result: {
+            links: {
+              related: v2_query_result_url(query.id)
+            }
+          }
+        }
+      ) if query.status == :finished
+      json
     end
 
     def render_create(query)
