@@ -9,7 +9,7 @@ describe TiSqlegalize::V2::QueriesController do
     mock_validator
   end
 
-  let(:sql) { "select a from t1, (select b,c from d.t) t2" }
+  let(:sql) { 'select a from t1, (select b,c from d.t) t2' }
   let(:rep) do
     {
       data: {
@@ -21,22 +21,22 @@ describe TiSqlegalize::V2::QueriesController do
     }
   end
 
-  context "without and authenticated user" do
+  context 'without and authenticated user' do
 
-    it "requires authentication" do
+    it 'requires authentication' do
       post_api :create, rep
       expect(response.status).to eq(401)
     end
 
   end
 
-  context "with an authenticated user" do
+  context 'with an authenticated user' do
 
     let(:user) { Fabricate(:user) }
 
     before(:each) { sign_in user }
 
-    it "creates a query" do
+    it 'creates a query' do
       post_api :create, rep
       expect(response.status).to eq(201)
       location = response.headers['Location']
@@ -48,19 +48,19 @@ describe TiSqlegalize::V2::QueriesController do
       expect(jsonapi_attr 'sql').to eq(sql)
     end
 
-    it "complains on unknown resource" do
-      get_api :show, id: "not_a_query"
+    it 'complains on unknown resource' do
+      get_api :show, id: 'not_a_query'
       expect(response.status).to eq(404)
-      expect(jsonapi_error).to eq("not found")
+      expect(jsonapi_error).to eq('not found')
     end
 
-    it "complains on invalid parameter" do
-      get_api :show, id: [1,2,"not_an_id"]
+    it 'complains on invalid parameter' do
+      get_api :show, id: [1, 2, 'not_an_id']
       expect(response.status).to eq(400)
-      expect(jsonapi_error).to eq("invalid parameters")
+      expect(jsonapi_error).to eq('invalid parameters')
     end
 
-    it "fetches an unfinished query" do
+    it 'fetches an unfinished query' do
       query = Fabricate(:created_query)
 
       get_api :show, id: query.id
@@ -73,7 +73,7 @@ describe TiSqlegalize::V2::QueriesController do
       expect(jsonapi_rel 'result').to be_nil
     end
 
-    it "fetches a finished query" do
+    it 'fetches a finished query' do
       query = Fabricate(:finished_query)
 
       get_api :show, id: query.id
@@ -85,5 +85,32 @@ describe TiSqlegalize::V2::QueriesController do
       expect(jsonapi_attr 'sql').to eq(query.statement)
       expect(jsonapi_rel 'result').to relate_to(v2_query_result_url(query.id))
     end
+
+    # List known database errors and the corresponding message we should log for each one of them
+    {
+      'ORDER BY without LIMIT currently not supported' => 'Must use LIMIT with ORDER BY'
+    }.each do |db_message, api_message|
+
+      it "fetches a query in error and returns correct message for #{db_message}" do
+        query = Fabricate(
+          :created_query,
+          status: :error,
+          message: db_message
+        )
+
+        get_api :show, id: query.id
+        expect(response.status).to eq(200)
+        expect(jsonapi_type).to eq('query')
+        expect(jsonapi_id).to eq(query.id)
+        expect(jsonapi_data).to reside_at(v2_query_url(query.id))
+        expect(jsonapi_attr 'status').to eq('error')
+        expect(jsonapi_attr 'message').to eq(api_message)
+        expect(jsonapi_attr 'sql').to eq(query.statement)
+        expect(jsonapi_rel 'result').to be_nil
+      end
+
+    end
+
   end
+
 end

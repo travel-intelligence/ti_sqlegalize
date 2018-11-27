@@ -20,9 +20,7 @@ module TiSqlegalize
       parser = Config.validator
       schemas = Schema.all
 
-      readable_schemas = schemas.flat_map do |s|
-                           current_user.can_read_schema?(s) ? [s] : []
-                         end
+      readable_schemas = schemas.select { |s| current_user.can_read_schema?(s) }
 
       validation = parser.parse @query_sql, readable_schemas
 
@@ -108,20 +106,20 @@ module TiSqlegalize
 
     class Legacy
       TYPES_MAP = {
-        "BOOLEAN" => "boolean",
-        "TINYINT" => "tinyint",
-        "SMALLINT" => "smallint",
-        "INTEGER" => "int",
-        "INT" => "int",
-        "BIGINT" => "bigint",
-        "DECIMAL" => "decimal",
-        "NUMERIC" => "decimal",
-        "REAL" => "float",
-        "FLOAT" => "float",
-        "DOUBLE" => "double",
-        "CHAR" => "string",
-        "VARCHAR" => "string",
-        "TIMESTAMP" => "timestamp"
+        'BOOLEAN' => 'boolean',
+        'TINYINT' => 'tinyint',
+        'SMALLINT' => 'smallint',
+        'INTEGER' => 'int',
+        'INT' => 'int',
+        'BIGINT' => 'bigint',
+        'DECIMAL' => 'decimal',
+        'NUMERIC' => 'decimal',
+        'REAL' => 'float',
+        'FLOAT' => 'float',
+        'DOUBLE' => 'double',
+        'CHAR' => 'string',
+        'VARCHAR' => 'string',
+        'TIMESTAMP' => 'timestamp'
       }
 
       def self.as_impala_type(domain)

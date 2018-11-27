@@ -9,7 +9,7 @@ module TiSqlegalize
     end
 
     def valid?
-      ! @ast.nil?
+      !@ast.nil?
     end
 
     def sql
@@ -17,7 +17,7 @@ module TiSqlegalize
     end
 
     def hint
-      ""
+      ''
     end
   end
 
@@ -26,7 +26,7 @@ module TiSqlegalize
       @parser = SQLiterate::QueryParser.new
     end
 
-    def parse(sql, _schemas=nil)
+    def parse(sql, _schemas = nil)
       SQLiterateAst.new sql, @parser.parse(sql)
     end
   end
