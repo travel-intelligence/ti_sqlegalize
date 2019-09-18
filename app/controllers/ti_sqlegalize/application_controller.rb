@@ -1,5 +1,4 @@
 # encoding: utf-8
-require 'rails-api/action_controller/api'
 
 module TiSqlegalize
 
@@ -19,7 +18,7 @@ module TiSqlegalize
     def self.ensure_signed_in
       include Config.auth_mixin
 
-      before_filter do
+      before_action do
         render_invalid_credentials unless authenticate
       end
     end

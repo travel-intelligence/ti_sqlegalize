@@ -35,4 +35,8 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  # When an error occurs in development mode, render debugging information as
+  # a regular API response, not an HTML page.
+  config.debug_exception_response_format = :api
 end
