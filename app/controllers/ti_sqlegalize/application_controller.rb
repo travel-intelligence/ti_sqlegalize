@@ -72,7 +72,7 @@ module TiSqlegalize
       respond_to do |format|
         format.json { render options }
         format.jsonapi { render options }
-        format.all { render options.merge(content_type: Mime::JSON) }
+        format.all { render options.merge(content_type: Mime[:json]) }
       end
     end
   end
