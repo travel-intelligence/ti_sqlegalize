@@ -1,18 +1,627 @@
 ## Overview
-**TI SQLLegalize** is an open source project that takes SQL queries and executes
-them in a background process. It provides via Web Services an interface to start,
-request status and get results of the jobs.
 
-The project is based on Ruby on Rails, and it serves a [JSON API](http://jsonapi.org/)
-representation of a relational data domain.
+**TI SQLLegalize** is an open source project that takes SQL queries and executes them in a background process.
+It provides via Web Services an interface to start, request status and get results of the jobs.
 
-The media type supporting this web service,
-known as [RelJSON](https://gist.github.com/ebastien/6d49802c8d34549e52ba7cc5fcddfdfa)
-is still at an experimental stage.
+The project is based on Ruby on Rails, and it serves a [JSON API](http://jsonapi.org/) representation of a relational data domain.
+
+The media type supporting this web service, known as [RelJSON](https://gist.github.com/ebastien/6d49802c8d34549e52ba7cc5fcddfdfa) is still at an experimental stage.
 
 ## API
-* ``baseurl/create?queries={query}``: Launches a job with the query as parameter
-* ``baseurl/show?id={id}``: Show the status (and result if finished) of the job 
+
+### Usage and browsing the API
+
+As a JSON:API standard, the API is organized around resources accessed through a single entry point, and linked together with relationships.
+
+The entry point of the API is the `/entry` URL, then next URLs can be accessed by following links and relationships from the resulting JSON.
+
+All examples in this section are taken with the `ti_sqlegalize` Rails engine mounted in a Rails application at `http://localhost/v2`
+
+Example:
+```
+curl http://localhost/v2/entry
+```
+```json
+{
+   "data" : {
+      "type" : "entry",
+      "links" : {
+         "self" : "http://localhost/v2/entry"
+      },
+      "relationships" : {
+         "queries" : {
+            "links" : {
+               "related" : "http://localhost/v2/queries"
+            }
+         },
+         "schemas" : {
+            "links" : {
+               "related" : "http://localhost/v2/schemas"
+            }
+         }
+      },
+      "id" : "1"
+   }
+}
+```
+
+In this example, the schemas resource can be accessed following the URL given at `['data']['relationships']['schemas']['links']['related']`
+
+For example, browsing the API in Ruby:
+
+```ruby
+require 'net/http'
+require 'json'
+json_entry = JSON.parse(Net::HTTP.get(URI('http://localhost/v2/entry')))
+# Here we have the JSON for the entry resource
+schemas_url = json_entry['data']['relationships']['schemas']['links']['related']
+json_schemas = JSON.parse(Net::HTTP.get(URI(schemas_url)))
+# Here we have the JSON for the schemas resource
+```
+
+Each resource can have a set of attributes accessible in `['data']['attributes']` of each JSON.
+
+Each HTTP response will use HTTP status codes to indicate eventual errors. Refer to the [HTTP status codes](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) to get the meaning out of them.
+
+Non-documented properties of the returned JSON (pagination, limits...) are specific to the JSON:API standard and are documented on the [JSON:API specification](https://jsonapi.org/).
+
+### JSON:API model
+
+Here is the model of resources with their relations and attributes, published by the API, with links to each resource's details:
+
+<pre><code>
+<a href="#resource_entry">entry</a>
+│
+└── <a href="#resource_schema">schemas</a>
+│   │   description
+│   │   name
+│   │
+│   └── <a href="#resource_relation">relations</a>
+│       │   heading
+│       │   name
+│       │
+│       └── <a href="#resource_heading">heading_&lt;heading_name&gt;</a>
+│       │   │   name
+│       │   │   primitive
+│       │
+│       └── <a href="#resource_body">body</a>
+│           │   tuples
+│
+└── <a href="#resource_query">queries</a>
+    │   sql
+    │   status
+    │
+    └── <a href="#resource_relation">relations</a>
+        │   heading
+        │   sql
+        │
+        └── <a href="#resource_heading">heading_&lt;heading_name&gt;</a>
+        │   │   name
+        │   │   primitive
+        │
+        └── <a href="#resource_body">body</a>
+            │   tuples
+
+</code></pre>
+
+### API resources
+
+#### <a name="resource_entry"></a>Entry
+
+This resource is the entry point of the API.
+
+Relationships:
+* `schemas`: Info regarding schemas:
+  Links:
+  * [`related`](#resource_schema): URL accessing schemas.
+* `queries`: Info regarding schemas:
+  Links:
+  * [`related`](#resource_query): URL accessing queries.
+
+Example of data structure:
+```json
+{
+   "relationships" : {
+      "schemas" : {
+         "links" : {
+            "related" : "http://localhost/v2/schemas"
+         }
+      },
+      "queries" : {
+         "links" : {
+            "related" : "http://localhost/v2/queries"
+         }
+      }
+   },
+   "id" : "1",
+   "links" : {
+      "self" : "http://localhost/v2/entry"
+   },
+   "type" : "entry"
+}
+```
+
+##### Method `GET`: Get the entry point
+
+Example:
+```
+curl http://localhost/v2/entry
+```
+```json
+{
+   "data" : {
+      "type" : "entry",
+      "links" : {
+         "self" : "http://localhost/v2/entry"
+      },
+      "relationships" : {
+         "queries" : {
+            "links" : {
+               "related" : "http://localhost/v2/queries"
+            }
+         },
+         "schemas" : {
+            "links" : {
+               "related" : "http://localhost/v2/schemas"
+            }
+         }
+      },
+      "id" : "1"
+   }
+}
+```
+
+#### <a name="resource_schema"></a>Schema
+
+A schema represents a group of relations associated to a given name.
+It can be seen as a way to group relational tables in a functional sense.
+
+Attributes:
+* `description` (String): Schema description
+* `name` (String): Schema name
+
+Relationships:
+* `relations`: Info regarding relations in this schema:
+  Links:
+  * [`related`](#resource_relation): URL accessing this schema's relations.
+
+Example of data structure:
+```json
+{
+   "relationships" : {
+      "relations" : {
+         "links" : {
+            "related" : "http://localhost/v2/schemas/MARKET/relations"
+         }
+      }
+   },
+   "id" : "MARKET",
+   "attributes" : {
+      "description" : "Market schema",
+      "name" : "MARKET"
+   },
+   "type" : "schema",
+   "links" : {
+      "self" : "http://localhost/v2/schemas/MARKET"
+   }
+}
+```
+
+##### Method `GET`: Get the list of schemas
+
+Example:
+```
+curl http://localhost/v2/schemas
+```
+```json
+{
+   "data" : [
+      {
+         "relationships" : {
+            "relations" : {
+               "links" : {
+                  "related" : "http://localhost/v2/schemas/MARKET/relations"
+               }
+            }
+         },
+         "id" : "MARKET",
+         "attributes" : {
+            "description" : "Market schema",
+            "name" : "MARKET"
+         },
+         "type" : "schema",
+         "links" : {
+            "self" : "http://localhost/v2/schemas/MARKET"
+         }
+      }
+   ],
+   "links" : {
+      "self" : "http://localhost/v2/schemas"
+   }
+}
+```
+
+#### <a name="resource_relation"></a>Relation
+
+A relation is grouping tuples under a given header and name.
+It can be seen as a table with headings and a body made of rows.
+
+Attributes:
+* `heading` (Array<String>): List of heading names this relation has (similar to column names)
+* `name` (String): Name of this relation (similar to table name)
+* `sql` (String): SQL statement that created this relation. Only visible if the relation comes from a query.
+
+Relationships:
+* `heading_<heading_name>`: Info regarding a particular heading:
+  Data:
+  * `id` (String): ID of this heading
+  * `type` (String): Type of this heading
+  Links:
+  * [`related`](#resource_heading): URL accessing this heading.
+* `body`: Info regarding the data associated to this relation
+  Links:
+  * [`related`](#resource_body): URL accessing this relation's body.
+
+Example of data structure:
+```json
+{
+   "links" : {
+      "self" : "http://localhost/v2/relations/fd76368d-ccc0-44be-8e1f-adbcd2e1c4ff"
+   },
+   "relationships" : {
+      "heading_PAX" : {
+         "data" : {
+            "id" : "INTEGER",
+            "type" : "domain"
+         },
+         "links" : {
+            "related" : "http://localhost/v2/relations/fd76368d-ccc0-44be-8e1f-adbcd2e1c4ff/heading/PAX"
+         }
+      },
+      "heading_BOARD_CITY" : {
+         "data" : {
+            "type" : "domain",
+            "id" : "IATA_CITY"
+         },
+         "links" : {
+            "related" : "http://localhost/v2/relations/fd76368d-ccc0-44be-8e1f-adbcd2e1c4ff/heading/BOARD_CITY"
+         }
+      },
+      "body" : {
+         "links" : {
+            "related" : "http://localhost/v2/relations/fd76368d-ccc0-44be-8e1f-adbcd2e1c4ff/body"
+         }
+      }
+   },
+   "attributes" : {
+      "name" : "BOOKINGS_OND",
+      "heading" : [
+         "BOARD_CITY",
+         "PAX"
+      ]
+   },
+   "id" : "fd76368d-ccc0-44be-8e1f-adbcd2e1c4ff",
+   "type" : "relation"
+}
+```
+
+##### Method `GET`: Get the list of relations
+
+Example:
+```
+curl http://localhost/v2/schemas/MARKET/relations
+```
+```json
+{
+   "data" : [
+      {
+         "attributes" : {
+            "heading" : [
+               "BOARD_CITY",
+               "PAX"
+            ],
+            "name" : "BOOKINGS_OND"
+         },
+         "links" : {
+            "self" : "http://localhost/v2/relations/212764da-b690-4581-8edd-88db7498a71c"
+         },
+         "id" : "212764da-b690-4581-8edd-88db7498a71c",
+         "type" : "relation",
+         "relationships" : {
+            "body" : {
+               "links" : {
+                  "related" : "http://localhost/v2/relations/212764da-b690-4581-8edd-88db7498a71c/body"
+               }
+            },
+            "heading_PAX" : {
+               "data" : {
+                  "type" : "domain",
+                  "id" : "INTEGER"
+               },
+               "links" : {
+                  "related" : "http://localhost/v2/relations/212764da-b690-4581-8edd-88db7498a71c/heading/PAX"
+               }
+            },
+            "heading_BOARD_CITY" : {
+               "data" : {
+                  "id" : "IATA_CITY",
+                  "type" : "domain"
+               },
+               "links" : {
+                  "related" : "http://localhost/v2/relations/212764da-b690-4581-8edd-88db7498a71c/heading/BOARD_CITY"
+               }
+            }
+         }
+      }
+   ],
+   "links" : {
+      "self" : "http://localhost/v2/schemas/MARKET/relations"
+   }
+}
+```
+
+#### <a name="resource_heading"></a>Heading
+
+A heading represents a typed header that can be used to interpret the body of a relation.
+
+Attributes:
+* `name` (String): Domain name of this heading
+* `primitive` (String): Type primitive of data belonging to this domain
+
+Relationships:
+* `relations`: Relation to which this heading belongs.
+  Links:
+  * [`related`](#link_get_schema_relations_related): URL accessing this relation.
+
+Example of data structure:
+```json
+{
+   "links" : {
+      "self" : "http://localhost/v2/domains/INTEGER"
+   },
+   "type" : "domain",
+   "attributes" : {
+      "name" : "INTEGER",
+      "primitive" : "INTEGER"
+   },
+   "relationships" : {
+      "relations" : {
+         "links" : {
+            "related" : "http://localhost/v2/domains/INTEGER/relations"
+         }
+      }
+   },
+   "id" : "INTEGER"
+}
+```
+
+##### Method `GET`: Get info on a heading
+
+Example:
+```
+curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/heading/PAX
+```
+```json
+{
+   "data" : {
+      "links" : {
+         "self" : "http://localhost:9292/v2/domains/INTEGER"
+      },
+      "attributes" : {
+         "name" : "INTEGER",
+         "primitive" : "INTEGER"
+      },
+      "relationships" : {
+         "relations" : {
+            "links" : {
+               "related" : "http://localhost:9292/v2/domains/INTEGER/relations"
+            }
+         }
+      },
+      "id" : "INTEGER",
+      "type" : "domain"
+   }
+}
+```
+
+#### <a name="resource_body"></a>Body
+
+A relation's body contain the tuples of the relation.
+It can be as a list of rows.
+
+Attributes:
+* `tuples` (Array): Data array
+
+Relationships:
+* `relations`: Relation to which this body belongs.
+  Links:
+  * [`related`](#link_get_schema_relations_related): URL accessing this relation.
+
+Example of data structure:
+```json
+{
+   "id" : "fd76368d-ccc0-44be-8e1f-adbcd2e1c4ff",
+   "type" : "body",
+   "links" : {
+      "self" : "http://localhost/v2/relations/fd76368d-ccc0-44be-8e1f-adbcd2e1c4ff/body"
+   },
+   "attributes" : {
+      "tuples" : [
+         [
+            "NCE"
+         ]
+      ]
+   },
+   "relationships" : {
+      "relation" : {
+         "links" : {
+            "related" : "http://localhost/v2/relations/fd76368d-ccc0-44be-8e1f-adbcd2e1c4ff"
+         }
+      }
+   }
+}
+```
+
+##### Method `GET`: Get info on a relation's body
+
+Example:
+```
+curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/body
+```
+```json
+{
+   "meta" : {
+      "count" : 0,
+      "offset" : 0,
+      "limit" : 1
+   },
+   "data" : {
+      "id" : "f90be808-854f-4904-b27d-c2b4be680f9b",
+      "attributes" : {
+         "tuples" : []
+      },
+      "type" : "body",
+      "links" : {
+         "self" : "http://localhost:9292/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/body"
+      },
+      "relationships" : {
+         "relation" : {
+            "links" : {
+               "related" : "http://localhost:9292/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b"
+            }
+         }
+      }
+   }
+}
+```
+
+Other example, when the relation comes from a query:
+```
+curl http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result/body
+```
+```json
+{
+   "meta" : {
+      "offset" : 0,
+      "count" : 3,
+      "limit" : 1
+   },
+   "data" : {
+      "links" : {
+         "self" : "http://localhost:9292/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result/body"
+      },
+      "id" : "5b506ed71522284b8d29fd96fc91d476_9",
+      "relationships" : {
+         "relation" : {
+            "links" : {
+               "related" : "http://localhost:9292/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result"
+            }
+         }
+      },
+      "type" : "body",
+      "attributes" : {
+         "tuples" : [
+            [
+               "NCE"
+            ]
+         ]
+      }
+   }
+}
+```
+
+#### <a name="resource_query"></a>Query
+
+A query represents an SQL query on the relations.
+It has a life cycle (as it is executed asynchronously), with status indicating where it is in the flow: created, running, finished or error.
+
+Attributes:
+* `sql` (String): SQL string of the query.
+* `status` (String): Status of the query (can be created, running, finished or error).
+
+Relationships:
+* `result`: Result of this query (only available if status is finished).
+  Links:
+  * [`related`](#link_get_schema_relations_related): URL accessing this result.
+
+Example of data structure:
+```json
+{
+   "relationships" : {
+      "result" : {
+         "links" : {
+            "related" : "http://localhost/v2/queries/95e1bd0bdc1bc9ca0bdc9ac8d742d560_3/result"
+         }
+      }
+   },
+   "attributes" : {
+      "status" : "finished",
+      "sql" : "SELECT `BOARD_CITY`\nFROM `MARKET`.`BOOKINGS_OND`"
+   },
+   "type" : "query",
+   "id" : "95e1bd0bdc1bc9ca0bdc9ac8d742d560_3",
+   "links" : {
+      "self" : "http://localhost/v2/queries/95e1bd0bdc1bc9ca0bdc9ac8d742d560_3"
+   }
+}
+```
+
+##### Method `GET`: Get info on a given query
+
+Example:
+```
+curl http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9
+```
+```json
+{
+   "data" : {
+      "type" : "query",
+      "id" : "5b506ed71522284b8d29fd96fc91d476_9",
+      "attributes" : {
+         "status" : "finished",
+         "sql" : "SELECT `BOARD_CITY`\nFROM `MARKET`.`BOOKINGS_OND`"
+      },
+      "relationships" : {
+         "result" : {
+            "links" : {
+               "related" : "http://localhost:9292/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result"
+            }
+         }
+      },
+      "links" : {
+         "self" : "http://localhost:9292/v2/queries/5b506ed71522284b8d29fd96fc91d476_9"
+      }
+   }
+}
+```
+
+##### Method `POST`: Create a new query
+
+Parameters:
+* `data` (Hash): Structure defining the query:
+  * `type` (String): Type of data being sent. Value should be `query`.
+  * `attributes` (Hash): List of attributes defining the query:
+    * `sql` (String): The query expressed as an SQL query.
+
+Example:
+```
+curl http://localhost/v2/queries -X POST -d '{"data": {"type": "query", "attributes": {"sql": "SELECT BOARD_CITY FROM MARKET.BOOKINGS_OND"}}}' -H "Content-Type: application/json"
+```
+```json
+{
+   "data" : {
+      "type" : "query",
+      "attributes" : {
+         "sql" : "SELECT `BOARD_CITY`\nFROM `MARKET`.`BOOKINGS_OND`",
+         "status" : "created"
+      },
+      "links" : {
+         "self" : "http://localhost:9292/v2/queries/dc78a6e9184b44d5321216030e6615aa_10"
+      },
+      "id" : "dc78a6e9184b44d5321216030e6615aa_10"
+   }
+}
+```
 
 ## How does it work
 It is based upon Resque (background jobs with Redis) and SQLiterate.
