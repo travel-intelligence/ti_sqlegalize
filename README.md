@@ -464,6 +464,11 @@ Example of data structure:
 
 ##### Method `GET`: Get info on a relation's body
 
+Query parameters:
+* `q_limit` (Integer): The maximum number of tuples to return [default = 1]
+* `q_offset` (Integer): Index of the first tuple to be returned [default = 0]
+
+
 Example:
 ```
 curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/body
@@ -526,6 +531,44 @@ curl http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result/body
             ]
          ]
       }
+   }
+}
+```
+
+Other example, when the relation comes from a query and we use limit and offset parameters:
+```
+curl 'http://localhost/v2/queries/5cf97942948ed9afb10d95c27e38ba1f_11/result/body?q_limit=2&q_offset=1'
+```
+```json
+{
+   "data" : {
+      "attributes" : {
+         "tuples" : [
+            [
+               "CDG"
+            ],
+            [
+               "MAD"
+            ]
+         ]
+      },
+      "links" : {
+         "self" : "http://localhost/v2/queries/5cf97942948ed9afb10d95c27e38ba1f_11/result/body"
+      },
+      "relationships" : {
+         "relation" : {
+            "links" : {
+               "related" : "http://localhost/v2/queries/5cf97942948ed9afb10d95c27e38ba1f_11/result"
+            }
+         }
+      },
+      "id" : "5cf97942948ed9afb10d95c27e38ba1f_11",
+      "type" : "body"
+   },
+   "meta" : {
+      "offset" : 1,
+      "limit" : 2,
+      "count" : 3
    }
 }
 ```
