@@ -247,7 +247,7 @@ A relation is grouping tuples under a given header and name.
 It can be seen as a table with headings and a body made of rows.
 
 Attributes:
-* `heading` (Array<String>): List of heading names this relation has (similar to column names)
+* `heading` (Array&lt;String&gt;): List of heading names this relation has (similar to column names)
 * `name` (String): Name of this relation (similar to table name)
 * `sql` (String): SQL statement that created this relation. Only visible if the relation comes from a query.
 
