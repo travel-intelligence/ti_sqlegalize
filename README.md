@@ -405,7 +405,7 @@ curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/heading/
 {
    "data" : {
       "links" : {
-         "self" : "http://localhost:9292/v2/domains/INTEGER"
+         "self" : "http://localhost/v2/domains/INTEGER"
       },
       "attributes" : {
          "name" : "INTEGER",
@@ -414,7 +414,7 @@ curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/heading/
       "relationships" : {
          "relations" : {
             "links" : {
-               "related" : "http://localhost:9292/v2/domains/INTEGER/relations"
+               "related" : "http://localhost/v2/domains/INTEGER/relations"
             }
          }
       },
@@ -482,12 +482,12 @@ curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/body
       },
       "type" : "body",
       "links" : {
-         "self" : "http://localhost:9292/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/body"
+         "self" : "http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/body"
       },
       "relationships" : {
          "relation" : {
             "links" : {
-               "related" : "http://localhost:9292/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b"
+               "related" : "http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b"
             }
          }
       }
@@ -508,13 +508,13 @@ curl http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result/body
    },
    "data" : {
       "links" : {
-         "self" : "http://localhost:9292/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result/body"
+         "self" : "http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result/body"
       },
       "id" : "5b506ed71522284b8d29fd96fc91d476_9",
       "relationships" : {
          "relation" : {
             "links" : {
-               "related" : "http://localhost:9292/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result"
+               "related" : "http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result"
             }
          }
       },
@@ -584,12 +584,12 @@ curl http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9
       "relationships" : {
          "result" : {
             "links" : {
-               "related" : "http://localhost:9292/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result"
+               "related" : "http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result"
             }
          }
       },
       "links" : {
-         "self" : "http://localhost:9292/v2/queries/5b506ed71522284b8d29fd96fc91d476_9"
+         "self" : "http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9"
       }
    }
 }
@@ -616,7 +616,7 @@ curl http://localhost/v2/queries -X POST -d '{"data": {"type": "query", "attribu
          "status" : "created"
       },
       "links" : {
-         "self" : "http://localhost:9292/v2/queries/dc78a6e9184b44d5321216030e6615aa_10"
+         "self" : "http://localhost/v2/queries/dc78a6e9184b44d5321216030e6615aa_10"
       },
       "id" : "dc78a6e9184b44d5321216030e6615aa_10"
    }
