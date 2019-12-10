@@ -18,7 +18,7 @@ The entry point of the API is the `/entry` URL, then next URLs can be accessed b
 All examples in this section are taken with the `ti_sqlegalize` Rails engine mounted in a Rails application at `http://localhost/v2`
 
 Example:
-```
+```bash
 curl http://localhost/v2/entry
 ```
 ```json
@@ -144,7 +144,7 @@ Example of data structure:
 ##### Method `GET`: Get the entry point
 
 Example:
-```
+```bash
 curl http://localhost/v2/entry
 ```
 ```json
@@ -210,7 +210,7 @@ Example of data structure:
 ##### Method `GET`: Get the list of schemas
 
 Example:
-```
+```bash
 curl http://localhost/v2/schemas
 ```
 ```json
@@ -308,7 +308,7 @@ Example of data structure:
 ##### Method `GET`: Get the list of relations
 
 Example:
-```
+```bash
 curl http://localhost/v2/schemas/MARKET/relations
 ```
 ```json
@@ -398,7 +398,7 @@ Example of data structure:
 ##### Method `GET`: Get info on a heading
 
 Example:
-```
+```bash
 curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/heading/PAX
 ```
 ```json
@@ -470,7 +470,7 @@ Query parameters:
 
 
 Example:
-```
+```bash
 curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/body
 ```
 ```json
@@ -501,7 +501,7 @@ curl http://localhost/v2/relations/f90be808-854f-4904-b27d-c2b4be680f9b/body
 ```
 
 Other example, when the relation comes from a query:
-```
+```bash
 curl http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result/body
 ```
 ```json
@@ -536,7 +536,7 @@ curl http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9/result/body
 ```
 
 Other example, when the relation comes from a query and we use limit and offset parameters:
-```
+```bash
 curl 'http://localhost/v2/queries/5cf97942948ed9afb10d95c27e38ba1f_11/result/body?q_limit=2&q_offset=1'
 ```
 ```json
@@ -612,7 +612,7 @@ Example of data structure:
 ##### Method `GET`: Get info on a given query
 
 Example:
-```
+```bash
 curl http://localhost/v2/queries/5b506ed71522284b8d29fd96fc91d476_9
 ```
 ```json
@@ -647,7 +647,7 @@ Parameters:
     * `sql` (String): The query expressed as an SQL query.
 
 Example:
-```
+```bash
 curl http://localhost/v2/queries -X POST -d '{"data": {"type": "query", "attributes": {"sql": "SELECT BOARD_CITY FROM MARKET.BOOKINGS_OND"}}}' -H "Content-Type: application/json"
 ```
 ```json
