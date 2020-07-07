@@ -21,17 +21,31 @@ module TiSqlegalize
 
       sd = json['schemas'].flat_map do |schema|
              tables = (schema['tables'] || []).flat_map do |table|
-                        columns = (table['columns'] || []).flat_map do |column|
-                                    domain = column['domain']
-                                    d = TiSqlegalize::Domain.find(domain)
-                                    c = TiSqlegalize::Column.new(
-                                          name: column['name'], domain: d
-                                        )
-                                    c.valid? ? [c] : []
-                                  end
-                        t = TiSqlegalize::Table.new(table.merge({ columns: columns}))
+                        columns = unless table.key?('layout')
+                          table['columns']
+                        else
+                          dirname = File.dirname(file)
+                          layout = begin
+                                     ActiveSupport::JSON.decode File.read(File.join(dirname, table['layout']))
+                                   rescue JSON::ParserError, Errno::ENOENT => e
+                                     raise LoadingError.new(e)
+                                   end
+                          table.delete('layout')
+                          layout['columns']
+                        end
+                        
+                        checked = (columns || []).flat_map do |column|
+                            domain = column['domain']
+                            d = TiSqlegalize::Domain.find(domain)
+                            c = TiSqlegalize::Column.new(
+                                  name: column['name'], domain: d
+                                )
+                            c.valid? ? [c] : []
+                        end
+                        
+                        t = TiSqlegalize::Table.new(table.merge({ columns: checked}))
                         t.valid? ? [t] : []
-                      end
+                    end
              s = TiSqlegalize::Schema.new(schema.merge({ tables: tables }))
              s.valid? ? [s] : []
            end

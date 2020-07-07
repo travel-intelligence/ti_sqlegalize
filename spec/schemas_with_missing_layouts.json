@@ -11,7 +11,7 @@
         { "name": "EMPNAME", "domain": "VARCHAR" },
         { "name": "DEPTNO", "domain": "INTEGER" }
       ]},
-      { "name": "FOO_TABLE", "layout": "layout.json" }
+      { "name": "FOO_TABLE", "layout": "layout_missing.json" }
     ]}
   ]
 }

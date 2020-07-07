@@ -1,0 +1,6 @@
+{
+  "columns": [
+    { "name": "FOO", "domain": "INTEGER" },
+    { "name": "BAR", "domain": "VARCHAR" }
+  ]
+}

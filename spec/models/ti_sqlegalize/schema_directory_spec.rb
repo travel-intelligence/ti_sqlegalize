@@ -56,4 +56,20 @@ describe TiSqlegalize::SchemaDirectory do
     table = TiSqlegalize::Table.new
     expect(directory.find_table_schema(table.id)).to be_nil
   end
+  
+  it "lookup schema by table with layout" do
+    schema = directory['HR']
+    expect(schema.tables.size).to eq(2)
+    table = schema.tables[1]
+    expect(table.name).to eq('FOO_TABLE')
+    expect(table.columns.size).to eq(2)
+    expect(table.columns[1].name).to eq('BAR')
+    expect(table.columns[1].domain.name).to eq('VARCHAR')
+  end
+  
+  it "raises error if table has missing layout" do
+    expect {
+      TiSqlegalize::SchemaDirectory.load(File.join(Rails.root, '..', 'schemas_with_missing_layouts.json'))
+    }.to raise_error(TiSqlegalize::SchemaDirectory::LoadingError)
+  end
 end
