@@ -85,4 +85,21 @@ of 10,000 rows):
     end
 ```
 
+## Development
 
+In order to locally test the library, first install dependencies:
+
+```bash
+bundle install
+```
+
+Then run the tests
+```bash
+bundle exec rspec
+```
+
+If you want to run the tests against a [TI Calcite](https://github.com/travel-intelligence/ti_calcite) server, just build a Jar of TI Calcite (check TI Calcite documentation to know how to do it) and provide the path to the Jar using the `TI_CALCITE_JAR` environment variable:
+
+```bash
+TI_CALCITE_JAR=/path/to/ti-calcite-all.jar bundle exec rspec
+```

@@ -48,11 +48,11 @@ module ApiHelper
   end
 
   def get_api(action, options = {})
-    get action, options.merge(format: :jsonapi)
+    get action, params: options.merge(format: :jsonapi)
   end
 
   def post_api(action, options = {})
-    post action, options.merge(format: :jsonapi)
+    post action, params: options.merge(format: :jsonapi)
   end
 
   matcher :relate_to do |expected|
